@@ -50,3 +50,5 @@
 - 验证 `source_prompt_mode=standard` 的 run 可在无登录标记下完整落盘标准 Prompt 要求的报告结构
 - 对另一组 3 条小红书样本完成 fresh run：产出 3 篇标准结构单篇报告、1 篇综合报告与最终播报
 - 记录 mixed sample 抓取边界：评论子回复 `DataFetchError / RetryError` 仍会出现，且个别样本可能无评论文件，但不阻断报告落盘
+- 对包含 1 条头条链接的 mixed sample 完成 fresh run：产出 3 篇标准结构单篇报告、1 篇综合报告与最终播报，非小红书链接被正确排除
+- 记录标准 Prompt 装载口径边界：部分 fresh run 的 `source_prompt_mode` 仍显示 `run-specific`，但 `explicit_instruction` 已写入标准 Prompt 正文，报告结构正常

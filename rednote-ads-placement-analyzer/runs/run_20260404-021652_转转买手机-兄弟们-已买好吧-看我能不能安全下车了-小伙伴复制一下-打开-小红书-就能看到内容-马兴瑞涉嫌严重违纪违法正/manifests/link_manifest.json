@@ -1,0 +1,45 @@
+[
+  {
+    "order": 1,
+    "raw_text_fragment": "http://xhslink.com/o/eCGee7vY2G",
+    "raw_url": "http://xhslink.com/o/eCGee7vY2G",
+    "normalized_url": "https://www.xiaohongshu.com/discovery/item/6999a73d000000000b0084dd?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBQ6NHXOUyCuO8X_tZ4M6zzjqAo-WwgLH8JkMhVPX7yiE=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775217759&share_id=423ae70dad754451ba479f999ece0dc1",
+    "resolved_url": "https://www.xiaohongshu.com/discovery/item/6999a73d000000000b0084dd?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBQ6NHXOUyCuO8X_tZ4M6zzjqAo-WwgLH8JkMhVPX7yiE=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775217759&share_id=423ae70dad754451ba479f999ece0dc1",
+    "platform": "xhs",
+    "is_valid_xhs": true,
+    "exclude_reason": "",
+    "note_id": "6999a73d000000000b0084dd"
+  },
+  {
+    "order": 2,
+    "raw_text_fragment": "https://m.toutiao.com/is/4OvAqSwfd2E/",
+    "raw_url": "https://m.toutiao.com/is/4OvAqSwfd2E/",
+    "normalized_url": "https://m.toutiao.com/is/4OvAqSwfd2E/",
+    "resolved_url": "",
+    "platform": "m.toutiao.com",
+    "is_valid_xhs": false,
+    "exclude_reason": "非 xhslink.com 链接"
+  },
+  {
+    "order": 3,
+    "raw_text_fragment": "http://xhslink.com/o/AQmFNQSQySM",
+    "raw_url": "http://xhslink.com/o/AQmFNQSQySM",
+    "normalized_url": "https://www.xiaohongshu.com/discovery/item/687e5133000000002203cdfb?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB-V2r2nah-OgyOzHz6cfcV4Z2WqGFSDIJl7mrOf0BwY4=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775217789&share_id=7a22baa9296f4a4691b43f69daef9972",
+    "resolved_url": "https://www.xiaohongshu.com/discovery/item/687e5133000000002203cdfb?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB-V2r2nah-OgyOzHz6cfcV4Z2WqGFSDIJl7mrOf0BwY4=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775217789&share_id=7a22baa9296f4a4691b43f69daef9972",
+    "platform": "xhs",
+    "is_valid_xhs": true,
+    "exclude_reason": "",
+    "note_id": "687e5133000000002203cdfb"
+  },
+  {
+    "order": 4,
+    "raw_text_fragment": "http://xhslink.com/o/86yiBn32kQA",
+    "raw_url": "http://xhslink.com/o/86yiBn32kQA",
+    "normalized_url": "https://www.xiaohongshu.com/discovery/item/68ca21f6000000001201f16a?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBYYREVD-mS8lWGR05zAS1pv0E6ePQnT7zm9hduleY2Ro=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775217805&share_id=bcbb1dbd60e74dcbb15e57bd6f1fca46",
+    "resolved_url": "https://www.xiaohongshu.com/discovery/item/68ca21f6000000001201f16a?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBYYREVD-mS8lWGR05zAS1pv0E6ePQnT7zm9hduleY2Ro=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775217805&share_id=bcbb1dbd60e74dcbb15e57bd6f1fca46",
+    "platform": "xhs",
+    "is_valid_xhs": true,
+    "exclude_reason": "",
+    "note_id": "68ca21f6000000001201f16a"
+  }
+]

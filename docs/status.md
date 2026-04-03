@@ -25,6 +25,7 @@
 - 修复 run 级评论落盘覆盖问题，评论批次现在会累积保存，不再只保留最后一批
 - 使用标准 Prompt 对指定 3 条小红书样本完成 fresh run：生成 3 篇单篇标准结构报告、1 篇综合报告与最终播报，1 条抖音链接被排除
 - 对另一组 3 条小红书样本完成 fresh run：生成 3 篇单篇标准结构报告、1 篇综合报告与最终播报；其中 1 条抖音链接被排除，1 篇样本未抓到评论文件但正文、图片与报告已完整落盘
+- 对包含 1 条非小红书新闻链接的混合样本完成 fresh run：生成 3 篇单篇标准结构报告、1 篇综合报告与最终播报，头条链接被正确排除
 
 ## 当前已知事实
 
@@ -37,6 +38,7 @@
 - 当前设备环境中“页面已登录”与 `selfinfo` 返回成功不是同一个口径；donor 登录判别需要引入页面登录态回退，不能再只看 `selfinfo`
 - `source_prompt_mode=standard` 的 fresh run 已验证可完整落地标准 Prompt 要求的单篇/综合报告结构与最终播报
 - mixed samples 下仍会出现评论子回复 `DataFetchError / RetryError`；当前不会阻断整条 run，但部分样本可能只落正文、图片与互动数据
+- 当前环境下部分 fresh run 会把标准 Prompt 正文写入 `explicit_instruction`，但 `source_prompt_mode` 仍显示为 `run-specific`；不影响报告结构落地
 
 ## 当前阻塞 / 待确认
 
