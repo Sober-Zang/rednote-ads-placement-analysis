@@ -1,0 +1,51 @@
+[
+  {
+    "ref_id": "T1",
+    "ref_type": "text",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/raw/note_text.md",
+    "position": "全文",
+    "excerpt": "之前处理旧手机真的踩坑踩麻了😭，线下回收的张口就压价，回款还得等好几天，折腾一圈总觉得亏了一大截。\n\t\n这次是刷小红书攻略看到好多姐妹安利转转，加上我室友上个月刚在这出了平板，说体验超棒👍，\n\t\n我也就预约了上门回收， 小哥比约定时间还早到十分钟，屏幕、电池、功能一项项当着我的面测，\n\t\n每一步都讲得明明白白 确认没问题之后，小哥当场就转账了，钱秒到账的那一刻真的太爽了！\n\t\n#回收手机[话题]#"
+  },
+  {
+    "ref_id": "D1",
+    "ref_type": "data",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/raw/metrics.json",
+    "position": "互动数据",
+    "excerpt": "{\"share_count\": \"1\", \"followed\": false, \"relation\": \"none\", \"liked\": false, \"liked_count\": \"44\", \"collected\": false, \"collected_count\": \"6\", \"comment_count\": \"1\"}"
+  },
+  {
+    "ref_id": "I1",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/images/0.jpg",
+    "position": "0.jpg",
+    "excerpt": "0.jpg"
+  },
+  {
+    "ref_id": "I2",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/images/1.jpg",
+    "position": "1.jpg",
+    "excerpt": "1.jpg"
+  },
+  {
+    "ref_id": "I3",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/images/2.jpg",
+    "position": "2.jpg",
+    "excerpt": "2.jpg"
+  },
+  {
+    "ref_id": "C1",
+    "ref_type": "comment",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/raw/comments.json",
+    "position": "评论 1",
+    "excerpt": "湘潭上门回收报废机，泡水的，开不了机的，压坏的，统统都收，25小时在线"
+  },
+  {
+    "ref_id": "I4",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-124948_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/01_旧手机到底怎么卖才不亏？__Jli/assets/comments_word_cloud.png",
+    "position": "评论词云图",
+    "excerpt": "评论高频词云图"
+  }
+]

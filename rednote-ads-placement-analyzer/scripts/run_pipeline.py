@@ -5,6 +5,8 @@ import argparse
 import asyncio
 import json
 import re
+import select
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -46,6 +48,16 @@ async def resolve_url(url: str) -> str:
         response = await client.get(url)
         response.raise_for_status()
         return str(response.url)
+
+
+def read_line_with_timeout(timeout_seconds: int) -> str | None:
+    ready, _, _ = select.select([sys.stdin], [], [], timeout_seconds)
+    if not ready:
+        return None
+    line = sys.stdin.readline()
+    if not line:
+        return None
+    return line.strip()
 
 
 def create_run_id(task_slug: str) -> str:
@@ -181,6 +193,8 @@ async def crawl_run(run_dir: str) -> dict[str, Any]:
             "FONT_PATH": str(VENDOR_ROOT / "docs" / "STZHONGS.TTF"),
         }
     )
+    login_detected = await ensure_login_state(config)
+    config.apply_runtime_config({"REQUIRE_LOGIN": login_detected})
     initialize_runtime_store(run_path, valid_entries)
     crawler = XiaoHongShuCrawler()
     await crawler.start()
@@ -193,6 +207,83 @@ async def crawl_run(run_dir: str) -> dict[str, Any]:
     run_manifest["note_summaries"] = summaries
     write_json(run_manifest_path, run_manifest)
     return {"run_dir": str(run_path), "notes": len(summaries), "status": run_manifest["status"]}
+
+
+async def check_login_state_once(config_module) -> bool:
+    from playwright.async_api import async_playwright  # type: ignore
+    from playwright.async_api import TimeoutError as PlaywrightTimeoutError  # type: ignore
+    from media_platform.xhs.core import XiaoHongShuCrawler  # type: ignore
+
+    crawler = XiaoHongShuCrawler()
+    try:
+        async with async_playwright() as playwright:
+            browser_context = await crawler.launch_browser(
+                playwright.chromium,
+                None,
+                crawler.user_agent,
+                headless=config_module.HEADLESS,
+            )
+            crawler.browser_context = browser_context
+            await browser_context.add_init_script(path=str(VENDOR_ROOT / "libs" / "stealth.min.js"))
+            crawler.context_page = await browser_context.new_page()
+            try:
+                await crawler.context_page.goto(crawler.index_url)
+                crawler.xhs_client = await crawler.create_xhs_client(None)
+                return await crawler.xhs_client.pong()
+            except PlaywrightTimeoutError:
+                # Treat homepage timeout as "login not confirmed" so the run can fall back.
+                return False
+    finally:
+        try:
+            await crawler.close()
+        except Exception:
+            pass
+
+
+async def ensure_login_state(config_module) -> bool:
+    if await check_login_state_once(config_module):
+        return True
+
+    prompt = (
+        "当前未检测到小红书登录状态，继续执行可能导致评论区内容抓取不全。\n"
+        "30 秒内请输入选项并回车：\n"
+        "1. 现在登录后再继续\n"
+        "2. 不登录，直接继续\n"
+        "若 30 秒内无回应，将默认继续无登录流程。\n> "
+    )
+    wait_prompt = (
+        "已进入 5 分钟登录窗口。若你不再等待、希望直接继续无登录工作，请输入 skip 并回车。\n"
+        "若不需要打断，则无需回复；完成登录后请等待自动进行后续工作。\n"
+    )
+
+    while True:
+        print(prompt, end="", flush=True)
+        response = await asyncio.to_thread(read_line_with_timeout, 30)
+        normalized = (response or "").strip().lower()
+        if normalized in {"", "2", "n", "no", "否", "不", "不用", "不登录"}:
+            print("未启用登录，继续无登录抓取流程。", flush=True)
+            return False
+        if normalized not in {"1", "y", "yes", "是", "要", "登录", "需要登录"}:
+            print("未识别为登录确认，按无登录流程继续。", flush=True)
+            return False
+
+        print(wait_prompt, flush=True)
+        deadline = asyncio.get_running_loop().time() + 300
+        while True:
+            if await check_login_state_once(config_module):
+                print("检测到登录状态已生效，将继续后续抓取。", flush=True)
+                return True
+
+            remaining = deadline - asyncio.get_running_loop().time()
+            if remaining <= 0:
+                print("5 分钟登录窗口已结束，重新询问是否继续等待登录。", flush=True)
+                break
+
+            response = await asyncio.to_thread(read_line_with_timeout, min(5, max(1, int(remaining))))
+            normalized = (response or "").strip().lower()
+            if normalized in {"skip", "2", "n", "no", "否", "不", "不用等", "继续"}:
+                print("已按你的要求停止等待，继续无登录抓取流程。", flush=True)
+                return False
 
 
 def find_reports(run_path: Path) -> tuple[list[Path], list[Path]]:

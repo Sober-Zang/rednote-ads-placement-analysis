@@ -37,5 +37,7 @@
 - 实现 `prepare-run`、`crawl`、`finalize-broadcast` 三段式执行链路
 - 将 donor 默认数据库存储改造成 run 级 JSON / JPG / reference index 落盘
 - 验证单链接真实样本可完成抓取、归档、单篇报告与最终播报
+- 修复 `run_pipeline.py` 登录态探测在首页访问超时后直接终止 run 的问题，改为可降级到无登录继续抓取
+- 验证一组混合输入可完成多样本闭环：4 个小红书链接成功抓取并产出单篇/综合报告，1 个抖音链接被正确排除
 - 新增 `docs/feature-notes/rednote-ads-placement-analyzer.md`
 - 更新 `Project.md`、`docs/status.md`、`docs/architecture.md` 以反映已进入 MVP 实现与验证阶段

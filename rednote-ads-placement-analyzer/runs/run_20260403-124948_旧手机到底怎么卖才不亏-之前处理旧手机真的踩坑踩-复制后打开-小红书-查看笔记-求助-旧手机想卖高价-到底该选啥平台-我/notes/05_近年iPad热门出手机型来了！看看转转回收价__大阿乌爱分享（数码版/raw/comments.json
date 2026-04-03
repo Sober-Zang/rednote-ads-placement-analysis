@@ -1,0 +1,34 @@
+[
+  {
+    "status": 0,
+    "content": "转转回收👍",
+    "like_count": "0",
+    "target_comment": {
+      "id": "69bbaf19000000000f02f7c1",
+      "user_info": {
+        "user_id": "68d514220000000022034aef",
+        "nickname": "开心最重要嘛",
+        "image": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31nisk7vrli605q6l2gh8minfauaqcmg?imageView2/2/w/120/format/jpg",
+        "ai_agent": false,
+        "xsec_token": "ABUNMwKo1MiCfLW8EDTaGKVZdKxubP6folktGFmS_VJik="
+      }
+    },
+    "create_time": 1773908086000,
+    "ip_location": "浙江",
+    "id": "69bbb076000000000f01df17",
+    "note_id": "69bb62a3000000001e00cc3d",
+    "at_users": [],
+    "liked": false,
+    "user_info": {
+      "user_id": "64b3580a000000001403dd75",
+      "nickname": "大阿乌爱分享（数码版",
+      "image": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31eq83p7p6g005p5jb0557nbl1rj565g?imageView2/2/w/120/format/jpg",
+      "ai_agent": false,
+      "xsec_token": "AB6-G9v851D7cJtT0dm42WyLNbfeiV57X38xUqTevwgqM="
+    },
+    "show_tags": [
+      "is_author"
+    ],
+    "pictures": []
+  }
+]
