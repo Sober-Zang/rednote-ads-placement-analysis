@@ -1,0 +1,130 @@
+{
+  "run_id": "run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买",
+  "created_at": "2026-04-03T22:49:59",
+  "task_slug": "转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买",
+  "source_prompt_mode": "run-specific",
+  "chat_output_mode": "contextual_response",
+  "valid_links": [
+    "http://xhslink.com/o/5ubuLvWGC9p",
+    "http://xhslink.com/o/3e6Y6om3WTf",
+    "http://xhslink.com/o/9MrODh0WDcF"
+  ],
+  "invalid_links": [
+    "https://v.douyin.com/0t1ygY_lGw8/小白旧机📱别瞎卖！看完这篇多赚小1K+"
+  ],
+  "note_folders": [
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记",
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏",
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵"
+  ],
+  "outputs": [
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/analysis/转转还是线下，这个我有发言权！+甜甜养生记_分析报告.md",
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/analysis/转转的二手机能买吗，第一次买二手+流夏_分析报告.md",
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/analysis/小白旧机别瞎卖！看完这篇多赚小1K+ +数码参数喵_分析报告.md",
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/aggregate/转转回收与二手购买决策机制_20260403_综合分析报告.md",
+    "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/logs/final_broadcast.md"
+  ],
+  "status": "reports_ready",
+  "login_mode": "anonymous",
+  "login_mode_reason": "user_declined_or_no_response",
+  "note_summaries": [
+    {
+      "order": 1,
+      "note_id": "6989abfd000000000c0365f7",
+      "title": "转转还是线下，这个我有发言权！",
+      "author_nickname": "甜甜养生记",
+      "source_url": "http://xhslink.com/o/5ubuLvWGC9p",
+      "resolved_url": "https://www.xiaohongshu.com/discovery/item/6989abfd000000000c0365f7?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBsAS-V_Wzb9lWdzJLh4PkE1ezRPY616ZNDwiCJ1HIYIs=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775193645&share_id=75272634ed5e42429d8fbe03636ef032",
+      "folder_name": "01_转转还是线下，这个我有发言权！__甜甜养生记",
+      "folder_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记",
+      "analysis_report_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/analysis/转转还是线下，这个我有发言权！+甜甜养生记_分析报告.md",
+      "available_assets": [
+        "comments.json",
+        "comments.md",
+        "comments_word_cloud.png",
+        "comments_word_freq.json",
+        "images/0.jpg",
+        "images/1.jpg",
+        "images/2.jpg",
+        "images/3.jpg",
+        "meta.json",
+        "metrics.json",
+        "note.json",
+        "note_text.md"
+      ],
+      "primary_files": {
+        "note_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/note.json",
+        "note_text": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/note_text.md",
+        "metrics_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/metrics.json",
+        "meta_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/meta.json",
+        "comments_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/comments.json",
+        "comments_md": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/comments.md",
+        "comments_word_freq_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/assets/comments_word_freq.json",
+        "comments_word_cloud_png": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/assets/comments_word_cloud.png",
+        "analysis_report": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/analysis/转转还是线下，这个我有发言权！+甜甜养生记_分析报告.md"
+      }
+    },
+    {
+      "order": 2,
+      "note_id": "69650603000000001a02b821",
+      "title": "转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#",
+      "author_nickname": "流夏",
+      "source_url": "http://xhslink.com/o/3e6Y6om3WTf",
+      "resolved_url": "https://www.xiaohongshu.com/discovery/item/69650603000000001a02b821?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBWRY5x7HbVMMPSsSiwA8SH8itupskzQv72xdtidVhxA0=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775193660&share_id=61b00b14d51f4a7bbf0a38bdfbaeef79",
+      "folder_name": "02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏",
+      "folder_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏",
+      "analysis_report_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/analysis/转转的二手机能买吗，第一次买二手+流夏_分析报告.md",
+      "available_assets": [
+        "comments.json",
+        "comments.md",
+        "comments_word_cloud.png",
+        "comments_word_freq.json",
+        "images/0.jpg",
+        "meta.json",
+        "metrics.json",
+        "note.json",
+        "note_text.md"
+      ],
+      "primary_files": {
+        "note_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/raw/note.json",
+        "note_text": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/raw/note_text.md",
+        "metrics_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/raw/metrics.json",
+        "meta_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/raw/meta.json",
+        "comments_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/raw/comments.json",
+        "comments_md": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/raw/comments.md",
+        "comments_word_freq_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/assets/comments_word_freq.json",
+        "comments_word_cloud_png": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/assets/comments_word_cloud.png",
+        "analysis_report": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/02_转转的二手机能买吗，第一次买二手[哭惹R][哭惹R]#换手机[话题]# #二手手机[话题]# #转转[话题]#__流夏/analysis/转转的二手机能买吗，第一次买二手+流夏_分析报告.md"
+      }
+    },
+    {
+      "order": 4,
+      "note_id": "69848254000000002801c355",
+      "title": "小白旧机📱别瞎卖！看完这篇多赚小1K+",
+      "author_nickname": "数码参数喵",
+      "source_url": "http://xhslink.com/o/9MrODh0WDcF",
+      "resolved_url": "https://www.xiaohongshu.com/discovery/item/69848254000000002801c355?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CB9XVAEdu1dA3ZT8NqiHWaCSw9CxJ5dhwswUwKgBZ_iLc=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775193908&share_id=36128c72897649d6a40fb1476996c010",
+      "folder_name": "04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵",
+      "folder_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵",
+      "analysis_report_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/analysis/小白旧机别瞎卖！看完这篇多赚小1K+ +数码参数喵_分析报告.md",
+      "available_assets": [
+        "images/0.jpg",
+        "images/1.jpg",
+        "images/2.jpg",
+        "images/3.jpg",
+        "images/4.jpg",
+        "meta.json",
+        "metrics.json",
+        "note.json",
+        "note_text.md"
+      ],
+      "primary_files": {
+        "note_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/raw/note.json",
+        "note_text": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/raw/note_text.md",
+        "metrics_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/raw/metrics.json",
+        "meta_json": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/raw/meta.json",
+        "analysis_report": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-224959_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/04_小白旧机📱别瞎卖！看完这篇多赚小1K+__数码参数喵/analysis/小白旧机别瞎卖！看完这篇多赚小1K+ +数码参数喵_分析报告.md"
+      }
+    }
+  ]
+}

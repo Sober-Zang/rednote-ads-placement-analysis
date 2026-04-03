@@ -1,3 +1,5 @@
-2026/04/03-13:16:01.073 3e03 Reusing MANIFEST /Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/browser_data/xhs_user_data_dir/Default/Local Storage/leveldb/MANIFEST-000001
-2026/04/03-13:16:01.075 3e03 Recovering log #4
-2026/04/03-13:16:01.075 3e03 Reusing old log /Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/browser_data/xhs_user_data_dir/Default/Local Storage/leveldb/000004.log 
+2026/04/03-22:50:28.877 2e03 Reusing MANIFEST /Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/browser_data/xhs_user_data_dir/Default/Local Storage/leveldb/MANIFEST-000001
+2026/04/03-22:50:28.880 2e03 Recovering log #15
+2026/04/03-22:50:28.880 2e03 Reusing old log /Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/browser_data/xhs_user_data_dir/Default/Local Storage/leveldb/000015.log 
+2026/04/03-22:52:42.676 2e03 Level-0 table #18: started
+2026/04/03-22:52:42.685 2e03 Level-0 table #18: 14201 bytes OK

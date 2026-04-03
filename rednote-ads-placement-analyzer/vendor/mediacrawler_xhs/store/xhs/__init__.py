@@ -133,10 +133,25 @@ class RuntimeStore:
         assets_dir = note_dir / "assets"
         comments_json = raw_dir / "comments.json"
         comments_md = raw_dir / "comments.md"
-        await self._write_json(comments_json, comments)
+        existing_comments: List[Dict[str, Any]] = []
+        if comments_json.exists():
+            try:
+                existing_comments = json.loads(comments_json.read_text(encoding="utf-8"))
+            except Exception:
+                existing_comments = []
+        merged_comments = self._merge_comments(existing_comments, comments)
+        await self._write_json(comments_json, merged_comments)
+
+        comments_json_path = str(comments_json.resolve())
+        record.references = [
+            ref
+            for ref in record.references
+            if not (ref.get("ref_type") == "comment" and ref.get("absolute_path") == comments_json_path)
+        ]
+        record.reference_counts["comment"] = sum(1 for ref in record.references if ref.get("ref_type") == "comment")
 
         lines = []
-        for idx, comment in enumerate(comments, start=1):
+        for idx, comment in enumerate(merged_comments, start=1):
             content = (comment.get("content") or "").strip()
             nickname = comment.get("user_info", {}).get("nickname") or ""
             lines.append(f"{idx}. {nickname}: {content}".strip())
@@ -169,6 +184,26 @@ class RuntimeStore:
 
         await self._flush_note_manifest(record)
         await self._flush_reference_index(record)
+
+    @staticmethod
+    def _merge_comments(existing_comments: List[Dict[str, Any]], incoming_comments: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        merged: Dict[str, Dict[str, Any]] = {}
+        ordered_keys: List[str] = []
+
+        def upsert(comment: Dict[str, Any]) -> None:
+            comment_id = str(comment.get("id") or "")
+            if not comment_id:
+                comment_id = json.dumps(comment, ensure_ascii=False, sort_keys=True)
+            if comment_id not in merged:
+                ordered_keys.append(comment_id)
+            merged[comment_id] = comment
+
+        for comment in existing_comments:
+            upsert(comment)
+        for comment in incoming_comments:
+            upsert(comment)
+
+        return [merged[key] for key in ordered_keys]
 
     async def update_image(self, note_id: str, pic_content: bytes, extension_file_name: str) -> None:
         record = self.note_id_to_record.get(note_id)

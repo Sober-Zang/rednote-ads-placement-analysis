@@ -45,10 +45,18 @@
   - `assets/standard_analysis_prompt.md`：标准分析 Prompt
   - `references/xhs-platform-context.md`：分析前置平台语境
   - `scripts/run_pipeline.py`：`prepare-run` / `crawl` / `finalize-broadcast`
-  - `vendor/mediacrawler_xhs/`：内化后的 donor 小红书抓取主干与 run 级存储适配
+  - `vendor/mediacrawler_xhs/`：内化后的 donor 小红书抓取主干与 run 级存储适配，现承担可信登录判别
   - `evals/`：主样本与边界样本夹具及期望
   - `runs/`：实际交付产物
 - 约束：业务模块命名、目录边界、术语定义一旦落盘，后续不得随意漂移
+
+## 当前登录与执行主链
+
+- 登录意图只在首次环境装载完成后询问一次，避免把登录判断散落到抓取过程中
+- donor 登录判别不再只依赖 `selfinfo`，而是采用“API 判别 + 页面登录态回退”的单一可信结论
+- 用户若明确选择无登录，本次任务后续不再反复要求登录
+- 用户若后续再次主动要求登录，必须对同一链接组重新执行任务并新建 run，不能续跑旧 run
+- 无登录模式不阻塞抓取主链，但必须在单篇报告、综合报告与 `final_broadcast.md` 中显式披露评论完整度边界
 
 ## 文档分工
 

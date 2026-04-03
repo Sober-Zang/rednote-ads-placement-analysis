@@ -1,0 +1,44 @@
+[
+  {
+    "ref_id": "T1",
+    "ref_type": "text",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-140134_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/04_重庆小白回收手机，还能这样？__飞云琉璃oo/raw/note_text.md",
+    "position": "全文",
+    "excerpt": "我最近想把家里的苹果16 Pro Max卖掉😥\n结果找遍了重庆的线下店，快一周都没找到合适的，全看我是个女生💢，以为我不知道行情疯狂压价，而且有的还要收验机费，我都打算放弃了\n\t\n后来网上刷到转转的可以小哥安排上门回收，才发现卖手机居然能这么省心！\n而且真的是可以免费预约上门回收😍都不用我自己出门找店真的太轻松啦！\n上转转就能安排免费上门检测🚪，价格💲不合适也可以随时取消❌，现场打款不墨迹💰\n真的"
+  },
+  {
+    "ref_id": "D1",
+    "ref_type": "data",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-140134_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/04_重庆小白回收手机，还能这样？__飞云琉璃oo/raw/metrics.json",
+    "position": "互动数据",
+    "excerpt": "{\"liked_count\": \"5\", \"collected\": false, \"collected_count\": \"2\", \"comment_count\": \"\", \"share_count\": \"1\", \"followed\": false, \"relation\": \"none\", \"liked\": false}"
+  },
+  {
+    "ref_id": "I1",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-140134_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/04_重庆小白回收手机，还能这样？__飞云琉璃oo/images/0.jpg",
+    "position": "0.jpg",
+    "excerpt": "0.jpg"
+  },
+  {
+    "ref_id": "I2",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-140134_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/04_重庆小白回收手机，还能这样？__飞云琉璃oo/images/1.jpg",
+    "position": "1.jpg",
+    "excerpt": "1.jpg"
+  },
+  {
+    "ref_id": "I3",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-140134_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/04_重庆小白回收手机，还能这样？__飞云琉璃oo/images/2.jpg",
+    "position": "2.jpg",
+    "excerpt": "2.jpg"
+  },
+  {
+    "ref_id": "I4",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-140134_旧手机到底怎么卖才不亏-之前处理旧手机真的踩坑踩-复制后打开-小红书-查看笔记-求助-旧手机想卖高价-到底该选啥平台-我/notes/04_重庆小白回收手机，还能这样？__飞云琉璃oo/images/3.jpg",
+    "position": "3.jpg",
+    "excerpt": "3.jpg"
+  }
+]

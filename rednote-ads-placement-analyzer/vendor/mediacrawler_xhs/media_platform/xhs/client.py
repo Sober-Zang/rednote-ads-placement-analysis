@@ -43,6 +43,14 @@ from .playwright_sign import sign_with_playwright
 
 
 class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
+    PROFILE_SELECTORS = (
+        "xpath=//a[contains(@href, '/user/profile/')]//span[text()='我']",
+        "xpath=//a[contains(@href, '/user/profile/')]",
+    )
+    LOGIN_BUTTON_SELECTORS = (
+        "xpath=//*[@id='app']//button[contains(., '登录') or contains(., '登陆')]",
+        "xpath=//button[contains(., '登录') or contains(., '登陆')]",
+    )
 
     def __init__(
         self,
@@ -226,6 +234,68 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
                 return response.json()
         return None
 
+    async def query_page_login_state(self) -> Dict[str, Any]:
+        """
+        Query login state from the browser page itself.
+        This is the fallback when selfinfo becomes unreliable in a restored browser profile.
+        """
+        profile_visible = False
+        login_button_visible = False
+
+        try:
+            await self.playwright_page.wait_for_timeout(1500)
+        except Exception:
+            pass
+
+        for selector in self.PROFILE_SELECTORS:
+            try:
+                if await self.playwright_page.is_visible(selector, timeout=1200):
+                    profile_visible = True
+                    break
+            except Exception:
+                continue
+
+        for selector in self.LOGIN_BUTTON_SELECTORS:
+            try:
+                if await self.playwright_page.is_visible(selector, timeout=800):
+                    login_button_visible = True
+                    break
+            except Exception:
+                continue
+
+        cookie_web_session = bool(self.cookie_dict.get("web_session"))
+        cookie_id_token = bool(self.cookie_dict.get("id_token"))
+        cookie_a1 = bool(self.cookie_dict.get("a1"))
+        logged_in = profile_visible or (
+            cookie_web_session and cookie_id_token and cookie_a1 and not login_button_visible
+        )
+
+        return {
+            "logged_in": logged_in,
+            "source": "page-ui" if profile_visible else ("cookie-context" if logged_in else "none"),
+            "profile_visible": profile_visible,
+            "login_button_visible": login_button_visible,
+            "cookie_web_session": cookie_web_session,
+            "cookie_id_token": cookie_id_token,
+            "cookie_a1": cookie_a1,
+        }
+
+    async def get_login_state(self) -> Dict[str, Any]:
+        """
+        Resolve login state with API-first, page-state fallback.
+        """
+        try:
+            self_info: Optional[Dict] = await self.query_self()
+            if self_info and self_info.get("data", {}).get("result", {}).get("success"):
+                return {"logged_in": True, "source": "selfinfo", "self_info": self_info}
+        except Exception as exc:
+            utils.logger.warning(
+                f"[XiaoHongShuClient.get_login_state] selfinfo probe failed, fallback to page state: {exc}"
+            )
+
+        page_state = await self.query_page_login_state()
+        return page_state
+
     async def pong(self) -> bool:
         """
         Check if login state is still valid by querying self user info
@@ -235,9 +305,16 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
         utils.logger.info("[XiaoHongShuClient.pong] Begin to check login state...")
         ping_flag = False
         try:
-            self_info: Dict = await self.query_self()
-            if self_info and self_info.get("data", {}).get("result", {}).get("success"):
-                ping_flag = True
+            login_state = await self.get_login_state()
+            ping_flag = bool(login_state.get("logged_in"))
+            if ping_flag:
+                utils.logger.info(
+                    f"[XiaoHongShuClient.pong] Login confirmed by {login_state.get('source', 'unknown')}."
+                )
+            else:
+                utils.logger.warning(
+                    f"[XiaoHongShuClient.pong] Login probe failed. Fallback state: {json.dumps(login_state, ensure_ascii=False)}"
+                )
         except Exception as e:
             utils.logger.error(
                 f"[XiaoHongShuClient.pong] Check login state failed: {e}, and try to login again..."

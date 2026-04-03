@@ -94,7 +94,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                 await self.browser_context.add_init_script(path=str(self._vendor_root / "libs" / "stealth.min.js"))
 
             self.context_page = await self.browser_context.new_page()
-            await self.context_page.goto(self.index_url)
+            await self.open_index_page()
 
             # Create a client to interact with the Xiaohongshu website.
             self.xhs_client = await self.create_xhs_client(httpx_proxy_format)
@@ -128,6 +128,26 @@ class XiaoHongShuCrawler(AbstractCrawler):
                 pass
 
             utils.logger.info("[XiaoHongShuCrawler.start] Xhs Crawler finished ...")
+
+    async def open_index_page(self) -> None:
+        """Open homepage with a small retry budget to tolerate transient browser/network failures."""
+        last_error: Exception | None = None
+        for attempt in range(3):
+            try:
+                await self.context_page.goto(
+                    self.index_url,
+                    wait_until="domcontentloaded",
+                    timeout=120000,
+                )
+                return
+            except Exception as exc:
+                last_error = exc
+                utils.logger.warning(
+                    f"[XiaoHongShuCrawler.open_index_page] Failed to open homepage on attempt {attempt + 1}: {exc}"
+                )
+                await asyncio.sleep(attempt + 1)
+        if last_error:
+            raise last_error
 
     async def search(self) -> None:
         """Search for notes and retrieve their comment information."""

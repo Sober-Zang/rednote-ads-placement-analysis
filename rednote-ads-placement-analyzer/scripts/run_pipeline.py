@@ -28,6 +28,20 @@ from _common import (
 )
 
 URL_PATTERN = re.compile(r"https?://[^\s<>\"]+")
+LOGIN_YES_EXAMPLES = (
+    "需要登录",
+    "要登录小红书",
+    "我先去登录",
+    "登录后继续",
+    "1",
+)
+LOGIN_NO_EXAMPLES = (
+    "不需要登录",
+    "不用登录",
+    "直接继续",
+    "无登录继续",
+    "2",
+)
 
 
 def clean_url(url: str) -> str:
@@ -44,10 +58,23 @@ def is_xhs_short_link(url: str) -> bool:
 
 
 async def resolve_url(url: str) -> str:
-    async with httpx.AsyncClient(follow_redirects=True, timeout=30.0) as client:
-        response = await client.get(url)
-        response.raise_for_status()
-        return str(response.url)
+    headers = {
+        "user-agent": (
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+        )
+    }
+    last_error: Exception | None = None
+    for attempt in range(3):
+        try:
+            async with httpx.AsyncClient(follow_redirects=True, timeout=30.0, headers=headers) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                return str(response.url)
+        except httpx.HTTPError as exc:
+            last_error = exc
+            await asyncio.sleep(attempt + 1)
+    raise last_error or RuntimeError(f"Failed to resolve url: {url}")
 
 
 def read_line_with_timeout(timeout_seconds: int) -> str | None:
@@ -58,6 +85,47 @@ def read_line_with_timeout(timeout_seconds: int) -> str | None:
     if not line:
         return None
     return line.strip()
+
+
+def interpret_login_intent(user_text: str | None) -> str | None:
+    if not user_text:
+        return None
+    normalized = user_text.strip().lower()
+    if not normalized:
+        return None
+
+    yes_tokens = (
+        "1",
+        "y",
+        "yes",
+        "要登录",
+        "需要登录",
+        "登录后继续",
+        "我先去登录",
+        "希望登录",
+        "想登录",
+        "去登录",
+        "登录",
+    )
+    no_tokens = (
+        "2",
+        "n",
+        "no",
+        "不用登录",
+        "不需要登录",
+        "无登录继续",
+        "直接继续",
+        "继续",
+        "先不登录",
+        "不登录",
+        "不用",
+    )
+
+    if normalized in yes_tokens or any(token in normalized for token in yes_tokens if len(token) > 1):
+        return "login"
+    if normalized in no_tokens or any(token in normalized for token in no_tokens if len(token) > 1):
+        return "anonymous"
+    return None
 
 
 def create_run_id(task_slug: str) -> str:
@@ -131,6 +199,7 @@ def prepare_run(input_file: str, run_root: str | None, custom_prompt_file: str |
         "created_at": datetime.now().isoformat(timespec="seconds"),
         "task_slug": derived_slug,
         "source_prompt_mode": mode,
+        "chat_output_mode": "strict_final_broadcast_match" if mode == "standard" else "contextual_response",
         "valid_links": [entry["raw_url"] for entry in valid_entries],
         "invalid_links": [entry["raw_url"] for entry in entries if not entry["is_valid_xhs"]],
         "note_folders": [],
@@ -193,8 +262,13 @@ async def crawl_run(run_dir: str) -> dict[str, Any]:
             "FONT_PATH": str(VENDOR_ROOT / "docs" / "STZHONGS.TTF"),
         }
     )
-    login_detected = await ensure_login_state(config)
-    config.apply_runtime_config({"REQUIRE_LOGIN": login_detected})
+    login_mode, login_reason = await determine_login_mode(config)
+    config.apply_runtime_config({"REQUIRE_LOGIN": False})
+    run_manifest = read_json(run_manifest_path)
+    run_manifest["login_mode"] = login_mode
+    run_manifest["login_mode_reason"] = login_reason
+    run_manifest["status"] = "crawling"
+    write_json(run_manifest_path, run_manifest)
     initialize_runtime_store(run_path, valid_entries)
     crawler = XiaoHongShuCrawler()
     await crawler.start()
@@ -206,6 +280,7 @@ async def crawl_run(run_dir: str) -> dict[str, Any]:
     run_manifest["note_folders"] = [item["folder_path"] for item in summaries]
     run_manifest["note_summaries"] = summaries
     write_json(run_manifest_path, run_manifest)
+    apply_login_mode_to_note_manifests(run_path, login_mode)
     return {"run_dir": str(run_path), "notes": len(summaries), "status": run_manifest["status"]}
 
 
@@ -240,50 +315,80 @@ async def check_login_state_once(config_module) -> bool:
             pass
 
 
-async def ensure_login_state(config_module) -> bool:
-    if await check_login_state_once(config_module):
-        return True
+async def wait_for_login_window(config_module, wait_seconds: int = 300) -> tuple[bool, str]:
+    from playwright.async_api import async_playwright  # type: ignore
+    from media_platform.xhs.core import XiaoHongShuCrawler  # type: ignore
 
+    crawler = XiaoHongShuCrawler()
+    try:
+        async with async_playwright() as playwright:
+            browser_context = await crawler.launch_browser(
+                playwright.chromium,
+                None,
+                crawler.user_agent,
+                headless=False,
+            )
+            crawler.browser_context = browser_context
+            await browser_context.add_init_script(path=str(VENDOR_ROOT / "libs" / "stealth.min.js"))
+            crawler.context_page = await browser_context.new_page()
+            await crawler.context_page.goto(crawler.index_url, wait_until="domcontentloaded", timeout=120000)
+            crawler.xhs_client = await crawler.create_xhs_client(None)
+            print(
+                "已打开机器控制的 Chrome，请在 300 秒内完成小红书登录。\n"
+                "示例回复：无需再回复，完成登录后等待自动继续；若关闭了浏览器或超时，则按无登录流程继续。",
+                flush=True,
+            )
+            deadline = asyncio.get_running_loop().time() + wait_seconds
+            while asyncio.get_running_loop().time() < deadline:
+                if crawler.context_page.is_closed():
+                    return False, "browser_closed"
+                await crawler.xhs_client.update_cookies(browser_context)
+                if await crawler.xhs_client.pong():
+                    return True, "login_confirmed"
+                await asyncio.sleep(3)
+            return False, "timeout"
+    except Exception as exc:
+        return False, f"login_window_error:{exc}"
+    finally:
+        try:
+            await crawler.close()
+        except Exception:
+            pass
+
+
+async def determine_login_mode(config_module) -> tuple[str, str]:
     prompt = (
-        "当前未检测到小红书登录状态，继续执行可能导致评论区内容抓取不全。\n"
-        "30 秒内请输入选项并回车：\n"
-        "1. 现在登录后再继续\n"
-        "2. 不登录，直接继续\n"
-        "若 30 秒内无回应，将默认继续无登录流程。\n> "
+        "当前已完成环境装载。你可以选择现在登录小红书账号，以提高评论区抓取完整度。\n"
+        "若不登录，后续仍会继续执行，但评论区、二级评论和评论图片可能不完整。\n"
+        "30 秒内请用自然语言回复是否登录。\n"
+        f"可参考示例（需要登录）：{', '.join(LOGIN_YES_EXAMPLES)}\n"
+        f"可参考示例（不登录）：{', '.join(LOGIN_NO_EXAMPLES)}\n"
+        "若 30 秒内无回复，将默认继续无登录流程。\n> "
     )
-    wait_prompt = (
-        "已进入 5 分钟登录窗口。若你不再等待、希望直接继续无登录工作，请输入 skip 并回车。\n"
-        "若不需要打断，则无需回复；完成登录后请等待自动进行后续工作。\n"
+    print(prompt, end="", flush=True)
+    response = await asyncio.to_thread(read_line_with_timeout, 30)
+    intent = interpret_login_intent(response)
+    if intent != "login":
+        return "anonymous", "user_declined_or_no_response"
+
+    login_confirmed, reason = await wait_for_login_window(config_module, wait_seconds=300)
+    if login_confirmed:
+        return "authenticated", reason
+    print("未在 300 秒内确认登录成功，或登录窗口已关闭，将继续无登录流程。", flush=True)
+    return "anonymous", reason
+
+
+def apply_login_mode_to_note_manifests(run_path: Path, login_mode: str) -> None:
+    login_note = (
+        "未登录执行：评论区、二级评论和评论图片可能不完整，报告与最终播报必须显式标注该影响。"
+        if login_mode != "authenticated"
+        else "已登录执行：评论抓取按当前设备保存的登录态完成。"
     )
-
-    while True:
-        print(prompt, end="", flush=True)
-        response = await asyncio.to_thread(read_line_with_timeout, 30)
-        normalized = (response or "").strip().lower()
-        if normalized in {"", "2", "n", "no", "否", "不", "不用", "不登录"}:
-            print("未启用登录，继续无登录抓取流程。", flush=True)
-            return False
-        if normalized not in {"1", "y", "yes", "是", "要", "登录", "需要登录"}:
-            print("未识别为登录确认，按无登录流程继续。", flush=True)
-            return False
-
-        print(wait_prompt, flush=True)
-        deadline = asyncio.get_running_loop().time() + 300
-        while True:
-            if await check_login_state_once(config_module):
-                print("检测到登录状态已生效，将继续后续抓取。", flush=True)
-                return True
-
-            remaining = deadline - asyncio.get_running_loop().time()
-            if remaining <= 0:
-                print("5 分钟登录窗口已结束，重新询问是否继续等待登录。", flush=True)
-                break
-
-            response = await asyncio.to_thread(read_line_with_timeout, min(5, max(1, int(remaining))))
-            normalized = (response or "").strip().lower()
-            if normalized in {"skip", "2", "n", "no", "否", "不", "不用等", "继续"}:
-                print("已按你的要求停止等待，继续无登录抓取流程。", flush=True)
-                return False
+    for manifest_path in run_path.glob("notes/*/manifests/note_manifest.json"):
+        note_manifest = read_json(manifest_path)
+        note_manifest["login_mode"] = login_mode
+        note_manifest["login_mode_note"] = login_note
+        write_json(manifest_path, note_manifest)
 
 
 def find_reports(run_path: Path) -> tuple[list[Path], list[Path]]:
@@ -295,8 +400,12 @@ def find_reports(run_path: Path) -> tuple[list[Path], list[Path]]:
 def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     run_path = Path(run_dir)
     link_entries = read_json(run_path / "manifests" / "link_manifest.json")
+    run_manifest_path = run_path / "manifests" / "run_manifest.json"
+    run_manifest = read_json(run_manifest_path)
     invalid_links = [entry["raw_url"] for entry in link_entries if not entry["is_valid_xhs"]]
     single_reports, aggregate_reports = find_reports(run_path)
+    login_mode = run_manifest.get("login_mode", "anonymous")
+    has_reports = bool(single_reports or aggregate_reports)
 
     for report in single_reports:
         note_dir = report.parents[1]
@@ -308,36 +417,38 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
             primary_files["analysis_report"] = str(report)
             write_json(manifest_path, note_manifest)
 
-    lines = [
-        "✅ 小红书广告投放分析完成！",
-        "",
-        f"📁 输出目录: {run_path.resolve()}",
-        "",
-        "📄 生成文件:",
-    ]
+    header = "✅ 小红书广告投放分析完成！" if has_reports else "⚠️ 小红书抓取已完成，但分析报告尚未生成。"
+    lines = [header, "", "📁 输出目录", f"* 新 run: {run_path.name}"]
+    if aggregate_reports:
+        lines.append(f"* 综合报告: {aggregate_reports[0].name}")
+    else:
+        lines.append("* 综合报告: 无")
+    lines.append("* 最终播报: final_broadcast.md")
+    lines.extend(["", "📄 生成文件"])
     if single_reports:
         for report in single_reports:
-            lines.append(f"- {report.name}")
+            lines.append(f"* {report.name}")
     else:
-        lines.append("- 暂无单篇分析报告")
+        lines.append("* 暂无单篇分析报告")
 
-    if aggregate_reports:
-        for report in aggregate_reports:
-            lines.append(f"- {report.name}")
+    lines.extend(["", "💡核心结论"])
+    if has_reports:
+        lines.append("* 本次样本已经完成结构化归档，可从单篇报告和综合报告继续下钻。")
+        lines.append("* 高价值结论优先以报告正文与引用证据为准。")
     else:
-        lines.append("- 暂无综合分析报告")
+        lines.append("* 当前 run 仅完成抓取与结构化归档，尚未进入报告产出阶段。")
+        lines.append("* 报告未生成前，不应把本次结果视为最终交付。")
 
-    lines.extend(["", "⚠️ 未纳入分析的链接:"])
+    lines.extend(["", "⚠️注意"])
+    if login_mode != "authenticated":
+        lines.append("* 本次为未登录执行，评论区、二级评论和评论图片区可能不完整。")
     if invalid_links:
         for url in invalid_links:
-            lines.append(f"- {url}")
+            lines.append(f"* 你这次混入的非小红书链接被正确排除了：{url}")
     else:
-        lines.append("- 无")
+        lines.append("* 本次输入中未发现非小红书链接。")
 
     write_text(run_path / "logs" / "final_broadcast.md", "\n".join(lines).rstrip() + "\n")
-
-    run_manifest_path = run_path / "manifests" / "run_manifest.json"
-    run_manifest = read_json(run_manifest_path)
     run_manifest["outputs"] = [str(path) for path in single_reports + aggregate_reports + [run_path / "logs" / "final_broadcast.md"]]
     summaries = run_manifest.get("note_summaries", [])
     for summary in summaries:
@@ -351,8 +462,10 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
         summary["analysis_report_path"] = note_manifest.get("analysis_report_path", "")
         summary["primary_files"] = note_manifest.get("primary_files", summary.get("primary_files", {}))
     run_manifest["note_summaries"] = summaries
-    if single_reports:
+    if has_reports:
         run_manifest["status"] = "reports_ready"
+    else:
+        run_manifest["status"] = "awaiting_reports"
     write_json(run_manifest_path, run_manifest)
     return {"run_dir": str(run_path), "single_reports": len(single_reports), "aggregate_reports": len(aggregate_reports)}
 

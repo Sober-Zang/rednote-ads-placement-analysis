@@ -1,0 +1,34 @@
+[
+  {
+    "content": "好的",
+    "user_info": {
+      "user_id": "654088b00000000030032ebc",
+      "nickname": "ovo",
+      "image": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31qveq30lga005pa0h2oc6blsr0b90t8?imageView2/2/w/120/format/jpg",
+      "ai_agent": false,
+      "xsec_token": "ABJRr3asg6XQhA-ip1QYR8xGv3GWP27J5qo0UZ98isG2M="
+    },
+    "show_tags": [
+      "is_author"
+    ],
+    "ip_location": "广西",
+    "pictures": [],
+    "create_time": 1771080461000,
+    "target_comment": {
+      "id": "699031b2000000000f01a51f",
+      "user_info": {
+        "nickname": "劳动最光荣嘞",
+        "image": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31t0ticvu5m605q2q2fk7h1isso6rof0?imageView2/2/w/120/format/jpg",
+        "ai_agent": false,
+        "xsec_token": "AB5sGWtT0XMOxmnhaoCXV-iKSx6amJYYkKYNlI0xEpUqo=",
+        "user_id": "685a13e8000000001e00865c"
+      }
+    },
+    "id": "69908b0c000000001500ecbe",
+    "note_id": "69902e1a000000002800ab09",
+    "status": 0,
+    "at_users": [],
+    "liked": false,
+    "like_count": "0"
+  }
+]

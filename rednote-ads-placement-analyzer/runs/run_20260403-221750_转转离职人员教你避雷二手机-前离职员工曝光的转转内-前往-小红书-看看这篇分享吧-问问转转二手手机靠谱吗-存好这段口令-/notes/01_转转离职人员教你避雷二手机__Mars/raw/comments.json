@@ -1,0 +1,34 @@
+[
+  {
+    "at_users": [],
+    "liked": false,
+    "like_count": "2",
+    "user_info": {
+      "ai_agent": false,
+      "xsec_token": "ABefM0boW25gNi-SN8U1cQ7pgwam7dSc6LiV8o0dpuaUE=",
+      "user_id": "5ce4b697000000001602d4ad",
+      "nickname": "Mars",
+      "image": "https://sns-avatar-qc.xhscdn.com/avatar/1040g2jo31m1jk0ep660g5n74mqblll5d5ll8180?imageView2/2/w/120/format/jpg"
+    },
+    "ip_location": "广东",
+    "id": "69af9b15000000000f025e5b",
+    "status": 0,
+    "show_tags": [
+      "is_author"
+    ],
+    "create_time": 1773116182000,
+    "target_comment": {
+      "id": "69af736e000000001d00afb1",
+      "user_info": {
+        "xsec_token": "ABa7iMf6DvNB9QtqDvHu4hCpaBB50M20ftyJ8QGXKKxns=",
+        "user_id": "5a2e6e1d11be102b06014656",
+        "nickname": "小兔瑞贝卡",
+        "image": "https://sns-avatar-qc.xhscdn.com/avatar/63f57302f291fa54a8838dfa.jpg?imageView2/2/w/120/format/jpg",
+        "ai_agent": false
+      }
+    },
+    "pictures": [],
+    "note_id": "69a0f901000000000e00d2e1",
+    "content": "可以"
+  }
+]

@@ -41,3 +41,12 @@
 - 验证一组混合输入可完成多样本闭环：4 个小红书链接成功抓取并产出单篇/综合报告，1 个抖音链接被正确排除
 - 新增 `docs/feature-notes/rednote-ads-placement-analyzer.md`
 - 更新 `Project.md`、`docs/status.md`、`docs/architecture.md` 以反映已进入 MVP 实现与验证阶段
+- 重构 donor 登录判别：不再把 `selfinfo` 作为唯一真相，引入页面登录态回退
+- 重构 `run_pipeline.py` 登录编排：首次环境装载后一次性询问是否登录，300 秒登录窗口超时后回落无登录模式
+- 修复 run 级评论落盘覆盖：评论批次改为按评论 ID 累积合并，避免只保留最后一批
+- 固化无登录模式披露：要求报告与 `final_broadcast.md` 显式标注评论完整度边界
+- 收紧 `final_broadcast.md` 语义：无报告时不得继续宣称分析已完成
+- 使用标准 Prompt 对一组 3 条小红书样本完成 fresh run 验证：产出 3 篇标准结构单篇报告、1 篇综合报告与最终播报
+- 验证 `source_prompt_mode=standard` 的 run 可在无登录标记下完整落盘标准 Prompt 要求的报告结构
+- 对另一组 3 条小红书样本完成 fresh run：产出 3 篇标准结构单篇报告、1 篇综合报告与最终播报
+- 记录 mixed sample 抓取边界：评论子回复 `DataFetchError / RetryError` 仍会出现，且个别样本可能无评论文件，但不阻断报告落盘

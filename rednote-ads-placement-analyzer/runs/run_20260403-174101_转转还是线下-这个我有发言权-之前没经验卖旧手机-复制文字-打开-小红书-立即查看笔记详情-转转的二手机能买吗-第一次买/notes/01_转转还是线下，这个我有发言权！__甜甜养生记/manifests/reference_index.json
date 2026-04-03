@@ -1,0 +1,58 @@
+[
+  {
+    "ref_id": "T1",
+    "ref_type": "text",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/note_text.md",
+    "position": "全文",
+    "excerpt": "之前没经验卖旧手机，踩了线下店的坑😣 各种鸡蛋里挑骨头压价，简直把我当大冤种坑，真的太糟心了！\n\t\n听朋友说转转靠谱就试了下，小哥免费上门验机超专业📱 每一步都讲得明明白白，检测完当场秒打款，全程无套路，体验感绝了💯\n\t\n#回收手机[话题]##转转回收[话题]##苹果手机回收[话题]##卖手机[话题]##二手平台[话题]##同城上门回收[话题]##转转[话题]##转转价格[话题]##苹果手机[话题"
+  },
+  {
+    "ref_id": "D1",
+    "ref_type": "data",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/metrics.json",
+    "position": "互动数据",
+    "excerpt": "{\"comment_count\": \"1\", \"share_count\": \"2\", \"followed\": false, \"relation\": \"none\", \"liked\": false, \"liked_count\": \"75\", \"collected\": false, \"collected_count\": \"6\"}"
+  },
+  {
+    "ref_id": "I1",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/images/0.jpg",
+    "position": "0.jpg",
+    "excerpt": "0.jpg"
+  },
+  {
+    "ref_id": "I2",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/images/1.jpg",
+    "position": "1.jpg",
+    "excerpt": "1.jpg"
+  },
+  {
+    "ref_id": "I3",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/images/2.jpg",
+    "position": "2.jpg",
+    "excerpt": "2.jpg"
+  },
+  {
+    "ref_id": "I4",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/images/3.jpg",
+    "position": "3.jpg",
+    "excerpt": "3.jpg"
+  },
+  {
+    "ref_id": "C1",
+    "ref_type": "comment",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/raw/comments.json",
+    "position": "评论 1",
+    "excerpt": "哈哈[笑哭R]"
+  },
+  {
+    "ref_id": "I5",
+    "ref_type": "image",
+    "absolute_path": "/Users/soberzang/AI-Workspace/rednote-ads-placement-analysis/rednote-ads-placement-analyzer/runs/run_20260403-174101_转转还是线下-这个我有发言权-之前没经验卖旧手机-复制文字-打开-小红书-立即查看笔记详情-转转的二手机能买吗-第一次买/notes/01_转转还是线下，这个我有发言权！__甜甜养生记/assets/comments_word_cloud.png",
+    "position": "评论词云图",
+    "excerpt": "评论高频词云图"
+  }
+]

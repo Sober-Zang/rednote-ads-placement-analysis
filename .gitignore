@@ -1,0 +1,11 @@
+# 不提交登录态
+browser_data/xhs_user_data_dir/
+
+# 不提交缓存
+**/Cache/
+**/Code Cache/
+**/GPUCache/
+__pycache__/
+
+# mac垃圾
+.DS_Store

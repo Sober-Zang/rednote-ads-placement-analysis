@@ -1,0 +1,45 @@
+[
+  {
+    "order": 1,
+    "raw_text_fragment": "http://xhslink.com/o/3BwyDpmjsFn",
+    "raw_url": "http://xhslink.com/o/3BwyDpmjsFn",
+    "normalized_url": "https://www.xiaohongshu.com/discovery/item/69a0f901000000000e00d2e1?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBaRMfHRV0iI93Q0lFLub3W-xt-7rzrDdD3T2kvXxSyEk=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775213691&share_id=9f023e3782914686870148d06450f8a2",
+    "resolved_url": "https://www.xiaohongshu.com/discovery/item/69a0f901000000000e00d2e1?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBaRMfHRV0iI93Q0lFLub3W-xt-7rzrDdD3T2kvXxSyEk=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775213691&share_id=9f023e3782914686870148d06450f8a2",
+    "platform": "xhs",
+    "is_valid_xhs": true,
+    "exclude_reason": "",
+    "note_id": "69a0f901000000000e00d2e1"
+  },
+  {
+    "order": 2,
+    "raw_text_fragment": "http://xhslink.com/o/A46lVXczDUy",
+    "raw_url": "http://xhslink.com/o/A46lVXczDUy",
+    "normalized_url": "https://www.xiaohongshu.com/discovery/item/69902e1a000000002800ab09?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBn8l5QeTsPCrzyR3mlVZFtn1dBQxxQkeeEAzHuRE1b5Y=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775213702&share_id=69bf9c14e7d54577b06c849a0f76df67",
+    "resolved_url": "https://www.xiaohongshu.com/discovery/item/69902e1a000000002800ab09?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBn8l5QeTsPCrzyR3mlVZFtn1dBQxxQkeeEAzHuRE1b5Y=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775213702&share_id=69bf9c14e7d54577b06c849a0f76df67",
+    "platform": "xhs",
+    "is_valid_xhs": true,
+    "exclude_reason": "",
+    "note_id": "69902e1a000000002800ab09"
+  },
+  {
+    "order": 3,
+    "raw_text_fragment": "https://v.douyin.com/Koz6Ratan40/为什么某鱼上的二手机比转转卖的还便宜的多啊，都是同...",
+    "raw_url": "https://v.douyin.com/Koz6Ratan40/为什么某鱼上的二手机比转转卖的还便宜的多啊，都是同...",
+    "normalized_url": "https://v.douyin.com/Koz6Ratan40/为什么某鱼上的二手机比转转卖的还便宜的多啊，都是同...",
+    "resolved_url": "",
+    "platform": "v.douyin.com",
+    "is_valid_xhs": false,
+    "exclude_reason": "非 xhslink.com 链接"
+  },
+  {
+    "order": 4,
+    "raw_text_fragment": "http://xhslink.com/o/9FWwoX1v9Vj",
+    "raw_url": "http://xhslink.com/o/9FWwoX1v9Vj",
+    "normalized_url": "https://www.xiaohongshu.com/discovery/item/68f1eb830000000007017811?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBChNuOUmXypIs9R94-Ai3YuB2rKFsweRId6D4qXuVGTE=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775213713&share_id=7bb85ce5fe2b4bfba58d7a1c77fb6ba0",
+    "resolved_url": "https://www.xiaohongshu.com/discovery/item/68f1eb830000000007017811?app_platform=ios&app_version=9.24&share_from_user_hidden=true&xsec_source=app_share&type=normal&xsec_token=CBChNuOUmXypIs9R94-Ai3YuB2rKFsweRId6D4qXuVGTE=&author_share=1&xhsshare=CopyLink&shareRedId=OD0yMzg-OE42NzUyOTgwNjdHOTk0N0g_&apptime=1775213713&share_id=7bb85ce5fe2b4bfba58d7a1c77fb6ba0",
+    "platform": "xhs",
+    "is_valid_xhs": true,
+    "exclude_reason": "",
+    "note_id": "68f1eb830000000007017811"
+  }
+]
