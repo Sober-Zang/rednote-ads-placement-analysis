@@ -1,0 +1,22 @@
+[
+  {
+    "order": 1,
+    "raw_text_fragment": "https://www.example.com/demo",
+    "raw_url": "https://www.example.com/demo",
+    "normalized_url": "https://www.example.com/demo",
+    "resolved_url": "",
+    "platform": "www.example.com",
+    "is_valid_xhs": false,
+    "exclude_reason": "非 xhslink.com 链接"
+  },
+  {
+    "order": 2,
+    "raw_text_fragment": "https://github.com/ssocean/PPT_Pilot",
+    "raw_url": "https://github.com/ssocean/PPT_Pilot",
+    "normalized_url": "https://github.com/ssocean/PPT_Pilot",
+    "resolved_url": "",
+    "platform": "github.com",
+    "is_valid_xhs": false,
+    "exclude_reason": "非 xhslink.com 链接"
+  }
+]

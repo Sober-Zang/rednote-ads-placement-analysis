@@ -1,0 +1,19 @@
+{
+  "run_id": "run_20260403-105759_http:-xhslink-com-o-3wzkcvphefv-http:-xhslink-com-o-arxrxhoe",
+  "created_at": "2026-04-03T10:57:59",
+  "task_slug": "http:-xhslink-com-o-3wzkcvphefv-http:-xhslink-com-o-arxrxhoe",
+  "source_prompt_mode": "standard",
+  "valid_links": [
+    "http://xhslink.com/o/3WzkCVpHEfV",
+    "http://xhslink.com/o/ArxRxhOEdWf",
+    "http://xhslink.com/o/7Jllb5XdsPy",
+    "http://xhslink.com/o/7Ows0hAttd6",
+    "http://xhslink.com/o/8TOk0VCFYd6"
+  ],
+  "invalid_links": [
+    "https://github.com/ssocean/PPT_Pilot"
+  ],
+  "note_folders": [],
+  "outputs": [],
+  "status": "prepared"
+}

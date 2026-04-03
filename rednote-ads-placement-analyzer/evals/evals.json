@@ -1,0 +1,45 @@
+{
+  "suite": "rednote-ads-placement-analyzer",
+  "version": "0.1.0-mvp",
+  "cases": [
+    {
+      "id": "main-mixed-input",
+      "kind": "main",
+      "input_file": "evals/fixtures/main_sample_input.txt",
+      "expected": {
+        "candidate_links": 6,
+        "valid_xhs_links": 5,
+        "invalid_links": 1,
+        "requires_single_reports": 5,
+        "requires_aggregate_report": 1,
+        "requires_invalid_link_callout": true,
+        "requires_downloaded_assets": [
+          "note.json",
+          "note_text.md",
+          "comments.json",
+          "metrics.json",
+          "images/"
+        ]
+      }
+    },
+    {
+      "id": "zero-valid-links",
+      "kind": "edge",
+      "input_file": "evals/fixtures/zero_valid_links.txt",
+      "expected": {
+        "valid_xhs_links": 0,
+        "must_stop_before_crawl": true,
+        "must_not_create_reports": true
+      }
+    },
+    {
+      "id": "run-specific-prompt",
+      "kind": "edge",
+      "input_file": "evals/fixtures/run_specific_prompt_input.txt",
+      "expected": {
+        "must_use_prompt_mode": "run-specific",
+        "must_not_write_global_assets": true
+      }
+    }
+  ]
+}
