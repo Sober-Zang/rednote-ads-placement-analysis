@@ -46,9 +46,18 @@ rednote-ads-placement-analyzer/
 
 先检查 skill 状态与 Python 依赖：
 
+macOS / Linux:
+
 ```bash
 make skill-status
 python3 rednote-ads-placement-analyzer/scripts/check_environment.py
+```
+
+Windows PowerShell:
+
+```powershell
+make skill-status
+py rednote-ads-placement-analyzer/scripts/check_environment.py
 ```
 
 最低通过标准：
@@ -56,6 +65,28 @@ python3 rednote-ads-placement-analyzer/scripts/check_environment.py
 - `skill-creator` 处于 `enabled`
 - 当前 Python 环境具备 `playwright`、`httpx`、`aiofiles`、`humps`、`tenacity`
 - 若要生成词云图，还需具备 `jieba`、`wordcloud`、`PIL`
+
+## 环境准备
+
+根据当前系统选择对应命令准备环境，不要把 mac 命令硬套到 Windows 上。
+
+macOS / Linux:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r skills/MediaCrawler/requirements.txt
+python -m playwright install chromium
+```
+
+Windows PowerShell:
+
+```powershell
+py -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r skills/MediaCrawler/requirements.txt
+python -m playwright install chromium
+```
 
 ## 首次使用设置
 
@@ -96,6 +127,10 @@ python3 rednote-ads-placement-analyzer/scripts/run_pipeline.py prepare-run \
 - 非小红书链接必须被写入 `inputs/invalid_links.md`
 - 有效链接数为 `0` 时立即停止，不进入抓取
 - `prompt/used_prompt.md` 必须存在
+- 若用户输入里除了小红书链接和无用链接外，还存在明确任务提示词，且该任务与标准任务不完全一致，则必须为本次 run 生成 run 专属 Prompt
+- run 专属 Prompt 只能写入当前 run，不得覆盖 `assets/standard_analysis_prompt.md`
+- 若存在 run 专属 Prompt 且仍有小红书链接，后续仍先执行下载与归档，再在本次 run 中引用该 Prompt 完成定制任务
+- 若存在 run 专属 Prompt 但没有小红书链接，则不执行下载抓取，直接围绕该 Prompt 回答
 
 ### 阶段 2：小红书数据下载与整理
 
@@ -104,6 +139,9 @@ python3 rednote-ads-placement-analyzer/scripts/run_pipeline.py prepare-run \
 登录状态规则：
 
 - 在首次环境装载结束时，只询问一次是否登录小红书账号，不要把登录判断散落到后续步骤里。
+- 在询问用户之前，先自动打开机器控制的 Chrome 进入小红书并检查当前是否已经完成登录。
+- 若自动检查发现当前已经登录，则直接进入已登录模式继续后续工作，不再先提问。
+- 若自动检查发现尚未登录，才向用户询问是否需要登录。
 - 提示用户：未登录不会阻塞任务，但评论区、二级评论和评论图片区可能不完整。
 - 30 秒内要求用户用自然语言明确回答是否登录，并给出示例，帮助模型理解用户意图：
   - 需要登录示例：`需要登录`、`要登录小红书`、`我先去登录`、`登录后继续`
