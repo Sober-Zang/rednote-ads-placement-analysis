@@ -44,8 +44,8 @@ from .playwright_sign import sign_with_playwright
 
 class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
     PROFILE_SELECTORS = (
-        "xpath=//a[contains(@href, '/user/profile/')]//span[text()='我']",
-        "xpath=//a[contains(@href, '/user/profile/')]",
+        "xpath=//a[contains(@href, '/user/profile/')][normalize-space(.)='我']",
+        "xpath=//a[contains(@href, '/user/profile/')]//*[normalize-space(text())='我']",
     )
     LOGIN_BUTTON_SELECTORS = (
         "xpath=//*[@id='app']//button[contains(., '登录') or contains(., '登陆')]",
@@ -241,43 +241,54 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
         """
         profile_visible = False
         login_button_visible = False
-
-        try:
-            await self.playwright_page.wait_for_timeout(1500)
-        except Exception:
-            pass
-
-        for selector in self.PROFILE_SELECTORS:
-            try:
-                if await self.playwright_page.is_visible(selector, timeout=1200):
-                    profile_visible = True
-                    break
-            except Exception:
-                continue
-
-        for selector in self.LOGIN_BUTTON_SELECTORS:
-            try:
-                if await self.playwright_page.is_visible(selector, timeout=800):
-                    login_button_visible = True
-                    break
-            except Exception:
-                continue
-
         cookie_web_session = bool(self.cookie_dict.get("web_session"))
         cookie_id_token = bool(self.cookie_dict.get("id_token"))
         cookie_a1 = bool(self.cookie_dict.get("a1"))
-        logged_in = profile_visible or (
-            cookie_web_session and cookie_id_token and cookie_a1 and not login_button_visible
-        )
+
+        try:
+            await self.playwright_page.wait_for_load_state("networkidle", timeout=3000)
+        except Exception:
+            pass
+
+        for _ in range(12):
+            for selector in self.PROFILE_SELECTORS:
+                try:
+                    if await self.playwright_page.is_visible(selector, timeout=800):
+                        profile_visible = True
+                        break
+                except Exception:
+                    continue
+
+            for selector in self.LOGIN_BUTTON_SELECTORS:
+                try:
+                    if await self.playwright_page.is_visible(selector, timeout=500):
+                        login_button_visible = True
+                        break
+                except Exception:
+                    continue
+
+            if profile_visible or login_button_visible:
+                break
+
+            try:
+                await self.playwright_page.wait_for_timeout(1000)
+            except Exception:
+                break
+
+        strong_cookie_context = cookie_web_session and cookie_id_token and cookie_a1
+        conflict_detected = profile_visible and login_button_visible
+        logged_in = profile_visible and not login_button_visible
 
         return {
             "logged_in": logged_in,
-            "source": "page-ui" if profile_visible else ("cookie-context" if logged_in else "none"),
+            "source": "page-ui" if logged_in else "none",
             "profile_visible": profile_visible,
             "login_button_visible": login_button_visible,
             "cookie_web_session": cookie_web_session,
             "cookie_id_token": cookie_id_token,
             "cookie_a1": cookie_a1,
+            "strong_cookie_context": strong_cookie_context,
+            "conflict_detected": conflict_detected,
         }
 
     async def get_login_state(self) -> Dict[str, Any]:

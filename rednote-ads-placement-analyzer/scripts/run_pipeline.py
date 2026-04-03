@@ -5,8 +5,6 @@ import argparse
 import asyncio
 import json
 import re
-import select
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -28,20 +26,6 @@ from _common import (
 )
 
 URL_PATTERN = re.compile(r"https?://[^\s<>\"]+")
-LOGIN_YES_EXAMPLES = (
-    "需要登录",
-    "要登录小红书",
-    "我先去登录",
-    "登录后继续",
-    "1",
-)
-LOGIN_NO_EXAMPLES = (
-    "不需要登录",
-    "不用登录",
-    "直接继续",
-    "无登录继续",
-    "2",
-)
 SHARE_NOISE_PATTERNS = (
     "复制后打开【小红书】查看笔记",
     "复制后直接打开【小红书】",
@@ -85,57 +69,6 @@ async def resolve_url(url: str) -> str:
             last_error = exc
             await asyncio.sleep(attempt + 1)
     raise last_error or RuntimeError(f"Failed to resolve url: {url}")
-
-
-def read_line_with_timeout(timeout_seconds: int) -> str | None:
-    ready, _, _ = select.select([sys.stdin], [], [], timeout_seconds)
-    if not ready:
-        return None
-    line = sys.stdin.readline()
-    if not line:
-        return None
-    return line.strip()
-
-
-def interpret_login_intent(user_text: str | None) -> str | None:
-    if not user_text:
-        return None
-    normalized = user_text.strip().lower()
-    if not normalized:
-        return None
-
-    yes_tokens = (
-        "1",
-        "y",
-        "yes",
-        "要登录",
-        "需要登录",
-        "登录后继续",
-        "我先去登录",
-        "希望登录",
-        "想登录",
-        "去登录",
-        "登录",
-    )
-    no_tokens = (
-        "2",
-        "n",
-        "no",
-        "不用登录",
-        "不需要登录",
-        "无登录继续",
-        "直接继续",
-        "继续",
-        "先不登录",
-        "不登录",
-        "不用",
-    )
-
-    if normalized in yes_tokens or any(token in normalized for token in yes_tokens if len(token) > 1):
-        return "login"
-    if normalized in no_tokens or any(token in normalized for token in no_tokens if len(token) > 1):
-        return "anonymous"
-    return None
 
 
 def normalize_instruction_text(text: str) -> str:
@@ -404,15 +337,19 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
             crawler.context_page = await browser_context.new_page()
             await crawler.context_page.goto(crawler.index_url, wait_until="domcontentloaded", timeout=120000)
             crawler.xhs_client = await crawler.create_xhs_client(None)
-            await crawler.xhs_client.update_cookies(browser_context)
-            if await crawler.xhs_client.pong():
-                return True, "auto_detected_existing_login"
+            initial_probe_attempts = 4 if allow_wait else 1
+            for attempt in range(initial_probe_attempts):
+                await crawler.xhs_client.update_cookies(browser_context)
+                if await crawler.xhs_client.pong():
+                    return True, "auto_detected_existing_login"
+                if attempt < initial_probe_attempts - 1:
+                    await asyncio.sleep(2)
             if not allow_wait:
                 return False, "not_logged_in"
             print(
-                "已打开机器控制的 Chrome，请在 300 秒内完成小红书登录。\n"
-                "若 300 秒内未完成，或你主动关闭了浏览器，将自动按无登录流程继续。\n"
-                "示例回复：无需再回复，完成登录后等待自动继续。",
+                "当前未检测到已完成的小红书登录，已打开机器控制的 Chrome 并进入小红书。\n"
+                "请在 300 秒内完成登录；若不需要登录，直接关闭浏览器即可，系统会按无登录流程继续。\n"
+                "登录成功后无需额外回复，系统会自动继续后续任务。",
                 flush=True,
             )
             deadline = asyncio.get_running_loop().time() + wait_seconds
@@ -434,24 +371,6 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
 
 
 async def determine_login_mode(config_module) -> tuple[str, str]:
-    existing_login, reason = await launch_login_probe_browser(allow_wait=False)
-    if existing_login:
-        return "authenticated", reason
-
-    prompt = (
-        "当前未检测到已完成的小红书登录。你可以选择现在登录小红书账号，以提高评论区抓取完整度。\n"
-        "若不登录，后续仍会继续执行，但评论区、二级评论和评论图片可能不完整。\n"
-        "30 秒内请用自然语言回复是否登录。\n"
-        f"可参考示例（需要登录）：{', '.join(LOGIN_YES_EXAMPLES)}\n"
-        f"可参考示例（不登录）：{', '.join(LOGIN_NO_EXAMPLES)}\n"
-        "若 30 秒内无回复，将默认继续无登录流程。\n> "
-    )
-    print(prompt, end="", flush=True)
-    response = await asyncio.to_thread(read_line_with_timeout, 30)
-    intent = interpret_login_intent(response)
-    if intent != "login":
-        return "anonymous", "user_declined_or_no_response"
-
     login_confirmed, reason = await launch_login_probe_browser(wait_seconds=300, allow_wait=True)
     if login_confirmed:
         return "authenticated", reason
