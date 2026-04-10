@@ -1,189 +1,186 @@
-# Rednote Ads Placement Analyzer 机器执行说明
+# 小红书广告投放策略分析工具
 
-面向小红书广告投放研究场景的一站式分析产品仓库。它能从自然语言里提取多个小红书分享链接，把每个样本的图文、图片、评论、互动信息和辅助元数据整理到独立 run 目录，并为后续单篇分析和跨样本综合分析准备可复核证据，帮助团队更稳定地复盘高 ROI / 高 CVR 内容为什么成立。
+[English](#english) | 中文文档
 
-## 这个仓库是什么
+<div align="center">
 
-这个仓库默认服务于**执行交付**，而不是开放式编码任务。
+**🤖 Agent Skill** | AI 驱动的小红书多模态投放分析工具
 
-它的职责是：
+[![Tested on: Gemini 3.1 Pro & ChatGPT 5.4](https://img.shields.io/badge/测试环境-Gemini_3.1_Pro_|_ChatGPT_5.4-blue)](https://gemini.google.com)
+[![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC%20BY--NC%204.0-green.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
-- 从混杂文本中提取有效小红书链接
-- 按固定契约生成 run 目录
-- 下载帖子正文、图片、评论和辅助元数据
-- 把分析所需的输入材料整理成稳定、可复核的结构
+</div>
 
-它被设计成：
+> 🎯 一站式小红书（Rednote）爆款图文提取与广告投放策略分析工具。支持多链接异步抓取，对图片、正文、评论及交互数据进行多模态深度耦合分析，精准提炼爆款共性，赋能品牌高效制定投放决策。
 
-- 仓库内只保留源码与文档
-- 真实产物写到仓库外
-- 浏览器登录态与运行期临时状态按固定规则收口
-- 后续 AI 不需要猜路径、猜解释器、猜输入输出文件名
-- 只要输入里已经出现一组小红书分享链接，且用户没有提出与标准任务不一致的新目标，就应直接按本仓库的标准任务入口执行，不必再追问“要用什么 skill”
+## 💡 核心场景与产品价值
 
-## 产品边界
+**解决的痛点：**
+- **人工拆解耗时费力**：分析一篇竞品或爆款笔记需要反复查看图文、翻阅评论区，耗费大量时间。
+- **分析维度单一割裂**：传统工具往往只看文本或只看数据，忽略了“图片视觉+文案情绪+评论区真实反馈”的**多模态深度耦合**效应。
+- **缺乏可复制的方法论**：难以从多篇爆款中快速抽象出底层的“广告投放共性”与“高转化逻辑”。
 
-| 层级 | 作用 | 写入规则 |
-| --- | --- | --- |
-| `rednote-ads-placement-analyzer/` | 产品源码、脚本、资产、vendor 子树 | 正常执行时只读 |
-| `docs/contracts/` | 执行契约、输出契约、runtime 契约 | 正常执行时只读 |
-| `OUTPUT_DIR/` | 正式 run 产物，以及 run 内临时文件 | 可写 |
-| `xhs_user_data_dir/` | 小红书登录态长期复用目录 | 可写 |
-| `/tmp/` | 仅限极短生命周期临时文件 | 可写 |
+**带来的好处（核心价值）：**
+- ⚡ **极致提效**：只需输入链接，喝杯咖啡的时间（7-10分钟/3篇笔记），即可获取深度洞察报告。
+- 🧠 **全景透视**：不仅仅是总结，而是从“受众心理-视觉抓手-评论互动”全链路透视笔记的真实种草价值。
+- 💰 **赋能决策**：直接产出具指导意义的广告投放策略，降低试错成本，提高 ROI（投资回报率）。
 
-默认情况下，每次任务都应重新完整执行。只有用户明确允许时，才可复用历史 run。
+## ✨ 功能特性
 
-## 官方入口
+| 阶段 | 功能 | 说明 |
+|------|------|------|
+| 1️⃣ | **异步多任务抓取** | 支持同时输入多条笔记链接，多任务并发执行 |
+| 2️⃣ | **多模态数据提取** | 全方位抓取：高清图片 / 正文文本 / 评论区对话 / 赞藏评交互数据 |
+| 3️⃣ | **深度耦合分析** | 图文匹配度检测 + 评论区情感计算 + 核心受众画像逆向推导 |
+| 4️⃣ | **共性价值提炼** | 跨笔记横向对比，提炼“视觉/文案/互动”维度的爆款共性模板 |
 
-唯一推荐入口：
+## 🚀 快速开始
 
-```bash
-python pipeline.py <command> ...
-```
+### 环境要求
 
-官方命令：
-
-| 命令 | 作用 |
-| --- | --- |
-| `check-env` | 检查 Python 依赖和外部目录边界 |
-| `login-only` | 只执行登录检测与登录等待，不建立 run |
-| `prepare-run` | 提取链接、建立新 run、写入官方输入材料 |
-| `crawl` | 下载帖子正文、图片、评论和元数据 |
-| `finalize-broadcast` | 生成官方最终播报文件 |
-| `validate-contract` | 检查 run 结构与契约一致性 |
-
-## 环境准备
-
-### macOS / Linux
+本项目作为高阶 Agent Skill，底层采用了现代化的异步架构与多模态解析栈（推荐 Python 3.8+）。
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+# 推荐通过依赖清单一键安装
 pip install -r requirements-execution.txt
-python -m playwright install chromium
 ```
 
-### Windows PowerShell
+**核心依赖组件与引擎解析：**
 
-```powershell
-py -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements-execution.txt
-python -m playwright install chromium
-```
+* **🌐 异步爬取与自动化引擎**：
+  * `playwright`：强大的无头浏览器驱动，从容应对小红书复杂的动态渲染与反爬机制。
+  * `httpx` & `aiofiles`：提供原生的高性能异步 HTTP 请求与底层异步文件 IO，保障多任务抓取效率。
+* **🧠 多模态视觉计算栈**：
+  * `opencv-python` & `Pillow`：负责处理高清图文素材，提取视觉抓手特征（Visual Hooks）。
+* **💬 文本与情绪分析引擎**：
+  * `jieba` & `wordcloud`：精准解构评论区中文高频词与情绪槽点，支持受众深潜诊断。
+* **📊 数据运算与工程健壮性**：
+  * `redis`：高并发多任务队列的性能保障，支持大规模并发抓取的任务调度与缓存。
+  * `pydantic` & `pyhumps`：严格校验并格式化多模态解析返回的复杂 JSON 数据模型。
+  * `numpy` & `matplotlib`：数据矩阵计算与投放转化率的底层图表支持。
+  * `tenacity`：赋予网络请求极强的智能重试与容错容灾能力。
 
-## 默认外部目录
+### 安装指南
 
-如果没有显式设置环境变量，流水线默认使用与项目目录同级的显式外部目录：
-
-- `../rednote-ads-placement-analysis-output`
-
-也可以手动设置：
-
-### macOS / Linux
+这是一个 **Agent Skill**，专为高度自治的 AI 代理设计。将其安装到你的 Agent 工作区（如 `.agent/skills/` 目录）：
 
 ```bash
-export OUTPUT_DIR="/absolute/path/to/rednote-ads-placement-analysis-output"
+git clone https://github.com/Sober-Zang/rednote-ads-placement-analysis.git .agent/skills/rednote-ads-placement-analysis
 ```
 
-### Windows PowerShell
+### 使用方法
 
-```powershell
-$env:OUTPUT_DIR="D:\path\to\rednote-ads-placement-analysis-output"
+在支持的 IDE 或对话窗口中，本工具的交互逻辑极为简捷：
+
+* **👉 极简触发（默认模式）**：只需直接粘贴小红书链接，Agent 就会自动识别、下载素材，并执行标准的广告投放深度分析。
+* **🧠 意图覆盖（自定义模式）**：如果在提供链接的同时，你输入了额外的提示词（例如：“重点帮我分析这几篇笔记中关于‘价格’的评论区情绪”），Agent 依然会自动完成下载，但会严格按照你的新指令出具针对性报告。
+* **🔇 边界隔离**：如果你发送的内容中不包含任何小红书链接，该 Skill 将保持完全静默，绝不干扰你与 Agent 的其他常规对话。
+
+**交互示例：** 直接输入以下内容：
+> [https://xhslink.com/xxxx1](https://xhslink.com/xxxx1)
+> [https://xhslink.com/xxxx2](https://xhslink.com/xxxx2)
+> [https://xhslink.com/xxxx3](https://xhslink.com/xxxx3)
+
+Agent 将自动分析这 3 篇小红书笔记的广告投放共性价值，并提取可复用的爆款逻辑。
+
+*⏱️ **注**：得益于多任务异步执行机制，处理 3 条复杂图文笔记平均仅需 **7-10 分钟**（首次运行可能因环境配置耗时较长，属正常现象，请耐心等待）。*
+
+## 🎯 多模态深度耦合解析流
+
+传统分析工具通常采取线性处理，而本 Skill 采用**深度耦合架构**，还原最真实的用户浏览与种草链路：
+
+```
+小红书笔记链接池 (多任务输入)
+    ↓
+[并行抓取层] ──→ 图片流 ──→ 文本流 ──→ 评论流 ──→ 交互指标
+    ↓ 
+[跨模态融合计算层] 
+  ├── 👁️ 视觉-文本耦合：图片信息量与文案 Hook 是否匹配？
+  ├── 💬 文本-评论耦合：正文埋点是否成功引导评论区互动（课代表/槽点）？
+  └── 📊 情绪-指标耦合：评论区正负向情感与最终点赞/收藏比率的关系？
+    ↓
+输出 高价值投放策略报告
 ```
 
-规则：
+## 📊 三维度投放分析框架
 
-- `OUTPUT_DIR` 必须在仓库外
-- 不再默认生成单独的 sibling `RUNTIME_DIR`
-- run 内短生命周期文件默认跟随当前 run 写入 `OUTPUT_DIR/run_*/`
-- 不允许再使用主目录下的隐藏外部目录作为默认位置
-- 为了提高当前设备上的小红书登录态复用率，仓库根目录下允许保留唯一一个例外目录：`xhs_user_data_dir/`
-- 这个目录只用于复用小红书登录态；除它之外，项目中其他已有内容都不允许被运行态写回或污染
+### 1. Visual-Textual Resonance（图文共振分析）
+- 头图视觉抓手拆解（构图/色彩/文字排版）
+- 标题/正文 Hook 诱因与流量密码识别
+- 模态一致性评估（图文是否相符，是否形成信息互补）
 
-## 官方执行流程
+### 2. Audience-Interaction Deep Dive（受众互动深潜）
+- 核心受众画像逆向推导
+- 评论区高频词与情感倾向（Sentiment Analysis）计算
+- 社交货币与传播节点（槽点、共鸣点、干货点）诊断
 
-```bash
-python pipeline.py check-env
-python pipeline.py prepare-run --input-text "<用户原始输入全文>"
-python pipeline.py crawl --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
-python pipeline.py finalize-broadcast --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
-python pipeline.py validate-contract --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+### 3. Ads-Placement Actionable Logic（投放实操逻辑提炼）
+- 横向共性分析（多篇笔记的底层爆款公式）
+- 品牌/产品自然植入位点建议
+- 转化漏斗优化（从浏览到行动的 CTA 建议）
+
+## 📁 项目结构
+
+```
+rednote-ads-placement-analysis/
+├── SKILL.md                          # 核心技能与 Prompt 注入指引
+├── scripts/
+│   ├── fetch_rednote_async.py        # 异步并发爬取核心脚本
+│   ├── multimodal_extractor.py       # 图、文、评论多模态分离提取器
+│   ├── comment_sentiment.py          # 评论区情感与关键词计算
+│   └── check_environment.py          # 运行环境自动诊断
+└── references/
+    └── ads-placement-frameworks.md   # 独家广告投放分析框架文档
 ```
 
-补充入口：
+## 📄 输出文件
 
-```bash
-python pipeline.py login-only
-```
+分析任务完成后，你的 Agent 会自动生成并整理以下产出物料：
 
-规则：
+📁 输出目录 (Output_Directory)
+│
+├── 📂 1_核心决策产出 (Core_Reports)  <-- 【最重要：直接面向用户的价值产物】
+│   ├── 📄 {任务主题}_综合分析报告.md        # 原 aggregate 真实感与阵地化运作...综合分析报告.md
+│   └── 📄 {笔记标题}_单篇分析报告.md        # 原 notes 167cm94斤...单篇分析报告.md (多篇对应多个文件)
+│
+├── 📂 2_多模态素材库 (Multimodal_Assets) <-- 【次重要：沉淀的原始数据与中间层分析】
+│   ├── 📂 图像与视觉素材 (Images)/
+│   │   └── 🖼️ {序号}.jpg                   # 原 0.jpg, 1.jpg, 2.jpg... (提取的无水印原图)
+│   │
+│   ├── 📂 评论生态数据 (Comments)/
+│   │   ├── 📄 comments.md / .json          # 抓取的全量评论文本与结构化数据
+│   │   ├── 📊 comments_word_freq.json      # 评论区高频词统计
+│   │   └── 🖼️ comments_word_cloud.png      # 评论情绪词云图
+│   │
+│   └── 📂 正文与互动指标 (Metadata)/
+│       ├── 📄 note_text.md / note.json     # 笔记正文及结构化内容
+│       └── 📄 meta.json / metrics.json     # 赞藏评转化率及基础元数据
+│
+└── 📂 3_系统运行组件 (System_Components) <-- 【最次要：用于追溯、调试和程序流转】
+    ├── 📂 配置文件 (Configs)/
+    │   ├── ⚙️ inputs / prompt              # 原始输入链接与下发的提示词配置
+    │   └── ⚙️ manifests                    # 任务清单与执行配置
+    │
+    └── 📂 运行日志 (Logs)/
+        ├── 📝 logs/                        # 基础运行与报错日志
+        └── 📝 final_broadcast.md           # 原 logs final_broadcast.md (执行完毕的系统广播/通告)
+        
+    *(注：原聚合用的 `aggregate`, `creators`, `notes` 文件夹已按其功能属性被整合进上述逻辑分类中)*
 
-- `check-env` 是唯一前置硬门，未通过时不得继续后续步骤
-- 机器执行优先使用 `--input-text`，不要自行发明 `task_input.md`、`m+ task_input.md` 等临时文件名
-- 若必须落临时文件，只能写到当前 run 的官方目录内，不能写回仓库
-- 如果与项目同级的 `rednote-ads-placement-analysis-output/` 已存在，必须直接复用该目录；只有在它不存在时，才允许在项目同级位置创建，不得改写成别的父级目录或隐藏目录
-- 单篇报告头部的登录状态说明，只能以当前样本目录下 `manifests/note_manifest.json` 为唯一事实来源；若其中为 `authenticated`，就不得再写未登录标签或未登录风险提示
+## 🎯 支持环境
 
-## 官方 run 结构
+本项目对现代主流的大语言模型及开发平台进行了深度适配与验证。**实测证明，具有多模态理解能力的前沿模型能发挥本 Skill 的最大威力：**
 
-```text
-OUTPUT_DIR/
-  run_<timestamp>_<task-slug>/
-    aggregate/
-    creators/
-    inputs/
-      invalid_links.md
-      raw_user_input.md
-    logs/
-      final_broadcast.md
-    manual-artifacts/
-    manifests/
-      link_manifest.json
-      run_manifest.json
-    notes/
-    prompt/
-      prompt_mode.json
-      used_prompt.md
-```
+| 环境/平台 | 推荐模型引擎 | 状态 | 表现评价 |
+|------|------|------|------|
+| **Google Antigravity** | Gemini 3.1 Pro | ✅ **强力推荐** | 原生多模态解析能力极强，图文耦合分析极其精准 |
+| **Codex** | ChatGPT 5.4 | ✅ **已充分测试** | 逻辑推理缜密，共性提炼与商业报告撰写极其优秀 |
+| **Cursor** | 适配模型 | ✅ 支持 | 代码执行与文件IO极度稳定 |
+| **Windsurf / Trae** | Claude / GPT系 | ✅ 支持 | 能够顺滑完成异步调度任务 |
 
-不要生成下列替代文件名：
+## 📝 许可证
 
-- `raw_user_input.txt`
-- `used_prompt.txt`
-- `link_manifest.txt`
-- `run_manifest.txt`
+本项目采用 Creative Commons Attribution-NonCommercial 4.0 International License（CC BY-NC 4.0）许可。
+你可以在非商业前提下自由使用、修改和二次创作本项目；任何商业用途需另行获得授权。
 
-## 评论抓取规则
-
-- 单篇帖子评论总抓取上限为 `500`
-- 上限包含一级评论与二级评论总和
-- 二级评论抓取失败不应直接打崩整条 run
-- 达到上限应视为受控截断，而不是抓取失败
-
-## 公开仓库主面
-
-适合进入 public 主面的内容：
-
-- execution-only 所需源码
-- 官方入口
-- 契约文档
-- 最小 eval / fixture
-- 必要资产与 vendor 子树
-
-不应进入 public 主面的内容：
-
-- 真实 runs
-- 浏览器 profile
-- cookie
-- 本地虚拟环境
-- 缓存
-- 本机状态
-- 内部工程背景材料
-
-## 契约文档
-
-- [Execution-Only Contract](./docs/contracts/execution-only.md)
-- [Output Contract](./docs/contracts/output-structure.md)
-- [Runtime Contract](./docs/contracts/runtime-state.md)
-- [Non-Public / Internal Assets](./docs/internal/non-public-assets.md)
+---
