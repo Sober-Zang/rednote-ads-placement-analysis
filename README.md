@@ -159,31 +159,36 @@ rednote-ads-placement-analysis/
 ```text
 📁 输出目录 (Output_Directory)
 │
-├── 📂 1_核心决策产出 (Core_Reports)  <-- 【最重要：直接面向用户的价值产物】
-│   ├── 📄 {任务主题}_综合分析报告.md        # 原 aggregate 真实感与阵地化运作...综合分析报告.md
-│   └── 📄 {笔记标题}_单篇分析报告.md        # 原 notes 167cm94斤...单篇分析报告.md (多篇对应多个文件)
+├── 📂 1_核心决策产出 (Core_Reports)        # ⭐ 最重要：直接交付给用户的最终分析结果
+│   ├── 📄 {任务主题}_综合分析报告.md        # 多笔记聚合后的整体分析（核心结论/策略/洞察）
+│   └── 📄 {笔记标题}_单篇分析报告.md        # 单条笔记拆解分析（可多文件，一条笔记对应一个）
 │
-├── 📂 2_多模态素材库 (Multimodal_Assets) <-- 【次重要：沉淀的原始数据与中间层分析】
-│   ├── 📂 图像与视觉素材 (Images)/
-│   │   └── 🖼️ {序号}.jpg                   # 原 0.jpg, 1.jpg, 2.jpg... (提取的无水印原图)
+├── 📂 2_多模态素材库 (Multimodal_Assets)   # 📊 次重要：原始数据 + 中间分析结果沉淀（可复用）
 │   │
-│   ├── 📂 评论生态数据 (Comments)/
-│   │   ├── 📄 comments.md / .json          # 抓取的全量评论文本与结构化数据
-│   │   ├── 📊 comments_word_freq.json      # 评论区高频词统计
-│   │   └── 🖼️ comments_word_cloud.png      # 评论情绪词云图
+│   ├── 📂 图像与视觉素材 (Images)/        # 原始图片资源（去水印/标准化）
+│   │   └── 🖼️ {序号}.jpg                  # 按抓取顺序编号（0.jpg, 1.jpg...）
 │   │
-│   └── 📂 正文与互动指标 (Metadata)/
-│       ├── 📄 note_text.md / note.json     # 笔记正文及结构化内容
-│       └── 📄 meta.json / metrics.json     # 赞藏评转化率及基础元数据
+│   ├── 📂 评论生态数据 (Comments)/        # 评论区内容及衍生分析
+│   │   ├── 📄 comments.json              # 全量评论（结构化，主数据源）
+│   │   ├── 📄 comments.md                # 评论文本（便于人工阅读）
+│   │   ├── 📊 comments_word_freq.json    # 高频词统计（用于洞察关键词/情绪）
+│   │   └── 🖼️ comments_word_cloud.png   # 词云图（可视化情绪/关注点）
+│   │
+│   └── 📂 正文与互动指标 (Metadata)/      # 笔记主体内容 + 表现指标
+│       ├── 📄 note.json                 # 笔记正文（结构化：标题/正文/标签等）
+│       ├── 📄 note.md                   # 正文文本（可选，用于阅读）
+│       └── 📄 metrics.json              # 互动数据（赞/藏/评/转 + 转化率等）
 │
-└── 📂 3_系统运行组件 (System_Components) <-- 【最次要：用于追溯、调试和程序流转】
-    ├── 📂 配置文件 (Configs)/
-    │   ├── ⚙️ inputs / prompt              # 原始输入链接与下发的提示词配置
-    │   └── ⚙️ manifests                    # 任务清单与执行配置
+└── 📂 3_系统运行组件 (System_Components)   # ⚙️ 最次要：系统运行痕迹（调试/追溯用）
     │
-    └── 📂 运行日志 (Logs)/
-        ├── 📝 logs/                        # 基础运行与报错日志
-        └── 📝 final_broadcast.md           # 原 logs final_broadcast.md (执行完毕的系统广播/通告)
+    ├── 📂 配置文件 (Configs)/            # 输入与任务配置（决定本次运行行为）
+    │   ├── ⚙️ inputs.json               # 输入数据（链接/任务参数等）
+    │   ├── ⚙️ prompt.md / prompt.json   # 实际使用的提示词（可复现分析过程）
+    │   └── ⚙️ manifests.json           # 任务清单/执行计划（pipeline定义）
+    │
+    └── 📂 运行日志 (Logs)/              # 执行过程记录（排错/审计）
+        ├── 📝 run.log                  # 基础运行日志（错误/耗时/步骤）
+        └── 📝 final_broadcast.md       # 执行完成总结（系统输出摘要/状态）
 ```
         
 *(注：原聚合用的 `aggregate`, `creators`, `notes` 文件夹已按其功能属性被整合进上述逻辑分类中)*
