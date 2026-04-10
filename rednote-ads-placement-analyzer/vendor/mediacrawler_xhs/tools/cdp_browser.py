@@ -193,9 +193,9 @@ class CDPBrowserManager:
         # Set user data directory (if save login state is enabled)
         user_data_dir = None
         if config.SAVE_LOGIN_STATE:
+            runtime_root = getattr(config, "RUNTIME_DIR", "") or os.path.join(os.getcwd(), "browser_data")
             user_data_dir = os.path.join(
-                os.getcwd(),
-                "browser_data",
+                runtime_root,
                 f"cdp_{config.USER_DATA_DIR % config.PLATFORM}",
             )
             os.makedirs(user_data_dir, exist_ok=True)

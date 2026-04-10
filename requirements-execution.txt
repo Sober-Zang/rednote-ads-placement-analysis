@@ -1,0 +1,13 @@
+aiofiles
+pyhumps
+httpx
+jieba
+matplotlib
+numpy
+opencv-python
+Pillow
+playwright
+pydantic
+redis
+tenacity
+wordcloud

@@ -98,7 +98,12 @@ class XiaoHongShuCrawler(AbstractCrawler):
 
             # Create a client to interact with the Xiaohongshu website.
             self.xhs_client = await self.create_xhs_client(httpx_proxy_format)
-            if not await self.xhs_client.pong():
+            login_already_confirmed = bool(getattr(config, "LOGIN_STATE_CONFIRMED", False))
+            if login_already_confirmed:
+                utils.logger.info(
+                    "[XiaoHongShuCrawler.start] Login was just confirmed in the current execution, skip duplicate probe."
+                )
+            elif not await self.xhs_client.pong():
                 if getattr(config, "REQUIRE_LOGIN", False):
                     login_obj = XiaoHongShuLogin(
                         login_type=config.LOGIN_TYPE,
@@ -428,9 +433,15 @@ class XiaoHongShuCrawler(AbstractCrawler):
         if config.SAVE_LOGIN_STATE:
             # feat issue #14
             # we will save login state to avoid login every time
-            user_data_dir = os.path.join(os.getcwd(), "browser_data", config.USER_DATA_DIR % config.PLATFORM)  # type: ignore
+            login_state_root = getattr(config, "LOGIN_STATE_DIR", "")
+            if login_state_root:
+                user_data_dir = Path(login_state_root)
+            else:
+                runtime_root = Path(getattr(config, "RUNTIME_DIR", "") or os.path.join(os.getcwd(), "browser_data"))
+                user_data_dir = runtime_root / (config.USER_DATA_DIR % config.PLATFORM)  # type: ignore[arg-type]
+            user_data_dir.mkdir(parents=True, exist_ok=True)
             browser_context = await chromium.launch_persistent_context(
-                user_data_dir=user_data_dir,
+                user_data_dir=str(user_data_dir),
                 accept_downloads=True,
                 headless=headless,
                 proxy=playwright_proxy,  # type: ignore

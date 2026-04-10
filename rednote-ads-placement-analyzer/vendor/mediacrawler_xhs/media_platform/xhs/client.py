@@ -51,7 +51,6 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
         "xpath=//*[@id='app']//button[contains(., '登录') or contains(., '登陆')]",
         "xpath=//button[contains(., '登录') or contains(., '登陆')]",
     )
-
     def __init__(
         self,
         timeout=60,  # If media crawling is enabled, Xiaohongshu long videos need longer timeout
@@ -293,18 +292,21 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
 
     async def get_login_state(self) -> Dict[str, Any]:
         """
-        Resolve login state with API-first, page-state fallback.
+        Resolve login state with page UI as the only trusted decision source.
+        selfinfo is kept only as a debug hint because restored browser profiles can
+        drift away from the API probe result.
         """
+        api_probe_success = False
         try:
             self_info: Optional[Dict] = await self.query_self()
-            if self_info and self_info.get("data", {}).get("result", {}).get("success"):
-                return {"logged_in": True, "source": "selfinfo", "self_info": self_info}
+            api_probe_success = bool(self_info and self_info.get("data", {}).get("result", {}).get("success"))
         except Exception as exc:
             utils.logger.warning(
-                f"[XiaoHongShuClient.get_login_state] selfinfo probe failed, fallback to page state: {exc}"
+                f"[XiaoHongShuClient.get_login_state] selfinfo probe failed, continue with page-state probe: {exc}"
             )
 
         page_state = await self.query_page_login_state()
+        page_state["api_probe_success"] = api_probe_success
         return page_state
 
     async def pong(self) -> bool:
@@ -510,15 +512,19 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
             comments = comments_res["comments"]
             if len(result) + len(comments) > max_count:
                 comments = comments[: max_count - len(result)]
-            if callback:
+            if callback and comments:
                 await callback(note_id, comments)
             await asyncio.sleep(crawl_interval)
             result.extend(comments)
+            remaining_slots = max_count - len(result)
+            if remaining_slots <= 0:
+                break
             sub_comments = await self.get_comments_all_sub_comments(
                 comments=comments,
                 xsec_token=xsec_token,
                 crawl_interval=crawl_interval,
                 callback=callback,
+                max_count=remaining_slots,
             )
             result.extend(sub_comments)
         return result
@@ -529,6 +535,7 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
         xsec_token: str,
         crawl_interval: float = 1.0,
         callback: Optional[Callable] = None,
+        max_count: int = 500,
     ) -> List[Dict]:
         """
         Get all second-level comments under specified first-level comments, this method will continuously find all second-level comment information under first-level comments
@@ -549,26 +556,31 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
 
         result = []
         for comment in comments:
+            if len(result) >= max_count:
+                break
             try:
                 note_id = comment.get("note_id")
                 sub_comments = comment.get("sub_comments")
-                if sub_comments and callback:
-                    await callback(note_id, sub_comments)
+                if sub_comments:
+                    initial_batch = sub_comments[: max_count - len(result)]
+                    if initial_batch and callback:
+                        await callback(note_id, initial_batch)
+                    result.extend(initial_batch)
 
                 sub_comment_has_more = comment.get("sub_comment_has_more")
-                if not sub_comment_has_more:
+                if not sub_comment_has_more or len(result) >= max_count:
                     continue
 
                 root_comment_id = comment.get("id")
                 sub_comment_cursor = comment.get("sub_comment_cursor")
 
-                while sub_comment_has_more:
+                while sub_comment_has_more and len(result) < max_count:
                     try:
                         comments_res = await self.get_note_sub_comments(
                             note_id=note_id,
                             root_comment_id=root_comment_id,
                             xsec_token=xsec_token,
-                            num=10,
+                            num=min(10, max_count - len(result)),
                             cursor=sub_comment_cursor,
                         )
 
@@ -585,18 +597,21 @@ class XiaoHongShuClient(AbstractApiClient, ProxyRefreshMixin):
                             )
                             break
                         comments = comments_res["comments"]
-                        if callback:
+                        comments = comments[: max_count - len(result)]
+                        if callback and comments:
                             await callback(note_id, comments)
                         await asyncio.sleep(crawl_interval)
                         result.extend(comments)
                     except DataFetchError as e:
                         utils.logger.warning(
-                            f"[XiaoHongShuClient.get_comments_all_sub_comments] Failed to get sub-comments for note_id: {note_id}, root_comment_id: {root_comment_id}, error: {e}. Skipping this comment's sub-comments."
+                            f"[XiaoHongShuClient.get_comments_all_sub_comments] Failed to get sub-comments for note_id: {note_id}, "
+                            f"root_comment_id: {root_comment_id}, error: {e}. Skipping this comment's sub-comments."
                         )
                         break  # Break out of the sub-comment acquisition loop of the current comment and continue processing the next comment
                     except Exception as e:
                         utils.logger.error(
-                            f"[XiaoHongShuClient.get_comments_all_sub_comments] Unexpected error when getting sub-comments for note_id: {note_id}, root_comment_id: {root_comment_id}, error: {e}"
+                            f"[XiaoHongShuClient.get_comments_all_sub_comments] Unexpected error when getting sub-comments for note_id: {note_id}, "
+                            f"root_comment_id: {root_comment_id}, error: {e}. Skipping this comment's sub-comments."
                         )
                         break
             except Exception as e:

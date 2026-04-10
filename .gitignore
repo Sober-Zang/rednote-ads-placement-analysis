@@ -1,11 +1,27 @@
-# 不提交登录态
-browser_data/xhs_user_data_dir/
+# Local Python environments
+.venv/
 
-# 不提交缓存
+# Repository-local runtime mistakes
+browser_data/
+runtime/
+output/
+tmp/
+rednote-ads-placement-analyzer/runs/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Browser / app caches
 **/Cache/
 **/Code Cache/
 **/GPUCache/
-__pycache__/
 
-# mac垃圾
+# Local machine junk
 .DS_Store
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+xhs_user_data_dir/
+.tmp_rednote_input_*.md

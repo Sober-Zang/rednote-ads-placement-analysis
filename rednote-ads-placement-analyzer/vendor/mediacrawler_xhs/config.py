@@ -34,7 +34,7 @@ CRAWLER_MAX_NOTES_COUNT = 20
 MAX_CONCURRENCY_NUM = 1
 ENABLE_GET_MEIDAS = True
 ENABLE_GET_COMMENTS = True
-CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES = 50
+CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES = 500
 ENABLE_GET_SUB_COMMENTS = True
 ENABLE_GET_WORDCLOUD = True
 CRAWLER_MAX_SLEEP_SEC = 1
@@ -61,12 +61,15 @@ FONT_PATH = ""
 # Product runtime paths
 PRODUCT_ROOT = Path(__file__).resolve().parents[2]
 RUN_OUTPUT_DIR = ""
+RUNTIME_DIR = ""
+LOGIN_STATE_DIR = str((PRODUCT_ROOT.parent / "xhs_user_data_dir").resolve())
 RUN_ID = ""
 TASK_SLUG = ""
 
 # Runtime behavior
 REQUIRE_LOGIN = False
 ALLOW_ANONYMOUS_HTML_FALLBACK = True
+LOGIN_STATE_CONFIRMED = False
 
 
 def apply_runtime_config(values: dict) -> None:

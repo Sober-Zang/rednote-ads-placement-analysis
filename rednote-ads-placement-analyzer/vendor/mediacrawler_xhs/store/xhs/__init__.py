@@ -40,6 +40,9 @@ class NoteRecord:
     })
     available_assets: list[str] = field(default_factory=list)
     primary_files: dict[str, str] = field(default_factory=dict)
+    captured_comment_count: int = 0
+    comment_capture_limit: int = 0
+    comment_capture_truncated: bool = False
 
 
 class RuntimeStore:
@@ -56,6 +59,11 @@ class RuntimeStore:
         self.note_records: dict[str, NoteRecord] = {}
         self.note_id_to_record: dict[str, NoteRecord] = {}
         self.wordcloud_generator = None
+
+    def _to_run_relative(self, path: Path) -> str:
+        if not self.run_dir:
+            return str(path)
+        return str(path.resolve().relative_to(self.run_dir.resolve()))
 
     def initialize(self, run_dir: Path, link_entries: List[dict[str, Any]]) -> None:
         self.run_dir = Path(run_dir)
@@ -110,10 +118,10 @@ class RuntimeStore:
         record.available_assets = sorted(set(record.available_assets + ["note.json", "note_text.md", "metrics.json", "meta.json"]))
         record.primary_files.update(
             {
-                "note_json": str(note_json),
-                "note_text": str(note_text),
-                "metrics_json": str(metrics_json),
-                "meta_json": str(meta_json),
+                "note_json": self._to_run_relative(note_json),
+                "note_text": self._to_run_relative(note_text),
+                "metrics_json": self._to_run_relative(metrics_json),
+                "meta_json": self._to_run_relative(meta_json),
             }
         )
 
@@ -141,12 +149,17 @@ class RuntimeStore:
                 existing_comments = []
         merged_comments = self._merge_comments(existing_comments, comments)
         await self._write_json(comments_json, merged_comments)
+        record.captured_comment_count = len(merged_comments)
+        record.comment_capture_limit = int(getattr(config, "CRAWLER_MAX_COMMENTS_COUNT_SINGLENOTES", 0) or 0)
+        record.comment_capture_truncated = bool(
+            record.comment_capture_limit and record.captured_comment_count >= record.comment_capture_limit
+        )
 
-        comments_json_path = str(comments_json.resolve())
+        comments_json_path = self._to_run_relative(comments_json)
         record.references = [
             ref
             for ref in record.references
-            if not (ref.get("ref_type") == "comment" and ref.get("absolute_path") == comments_json_path)
+            if not (ref.get("ref_type") == "comment" and ref.get("path") == comments_json_path)
         ]
         record.reference_counts["comment"] = sum(1 for ref in record.references if ref.get("ref_type") == "comment")
 
@@ -161,8 +174,8 @@ class RuntimeStore:
         record.available_assets = sorted(set(record.available_assets + ["comments.json", "comments.md"]))
         record.primary_files.update(
             {
-                "comments_json": str(comments_json),
-                "comments_md": str(comments_md),
+                "comments_json": self._to_run_relative(comments_json),
+                "comments_md": self._to_run_relative(comments_md),
             }
         )
 
@@ -174,10 +187,10 @@ class RuntimeStore:
                 cloud_path = assets_dir / "comments_word_cloud.png"
                 if freq_path.exists():
                     record.available_assets.append("comments_word_freq.json")
-                    record.primary_files["comments_word_freq_json"] = str(freq_path)
+                    record.primary_files["comments_word_freq_json"] = self._to_run_relative(freq_path)
                 if cloud_path.exists():
                     record.available_assets.append("comments_word_cloud.png")
-                    record.primary_files["comments_word_cloud_png"] = str(cloud_path)
+                    record.primary_files["comments_word_cloud_png"] = self._to_run_relative(cloud_path)
                     self._add_reference(record, "image", cloud_path, "评论词云图", "评论高频词云图")
             except Exception:
                 pass
@@ -247,8 +260,11 @@ class RuntimeStore:
                     "source_url": record.source_url,
                     "resolved_url": record.resolved_url,
                     "folder_name": record.folder_name,
-                    "folder_path": str(record.note_dir),
+                    "folder_path": self._to_run_relative(record.note_dir),
                     "analysis_report_path": record.primary_files.get("analysis_report", ""),
+                    "captured_comment_count": record.captured_comment_count,
+                    "comment_capture_limit": record.comment_capture_limit,
+                    "comment_capture_truncated": record.comment_capture_truncated,
                     "available_assets": sorted(set(record.available_assets)),
                     "primary_files": record.primary_files,
                 }
@@ -302,6 +318,9 @@ class RuntimeStore:
                 "available_assets": sorted(set(record.available_assets)),
                 "primary_files": record.primary_files,
                 "analysis_report_path": record.primary_files.get("analysis_report", ""),
+                "captured_comment_count": record.captured_comment_count,
+                "comment_capture_limit": record.comment_capture_limit,
+                "comment_capture_truncated": record.comment_capture_truncated,
             },
         )
 
@@ -313,8 +332,8 @@ class RuntimeStore:
     def _add_reference(self, record: NoteRecord, ref_type: str, path: Path, position: str, excerpt: str) -> None:
         if record.note_dir is None:
             return
-        absolute_path = str(path.resolve())
-        if any(ref["absolute_path"] == absolute_path and ref["position"] == position for ref in record.references):
+        relative_path = self._to_run_relative(path)
+        if any(ref["path"] == relative_path and ref["position"] == position for ref in record.references):
             return
         record.reference_counts[ref_type] += 1
         ref_id = f"{self.REF_PREFIX[ref_type]}{record.reference_counts[ref_type]}"
@@ -322,7 +341,7 @@ class RuntimeStore:
             {
                 "ref_id": ref_id,
                 "ref_type": ref_type,
-                "absolute_path": absolute_path,
+                "path": relative_path,
                 "position": position,
                 "excerpt": excerpt,
             }
