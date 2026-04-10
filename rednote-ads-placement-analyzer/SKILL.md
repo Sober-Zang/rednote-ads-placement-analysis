@@ -18,6 +18,7 @@ description: >
 - 临时文件只允许写入当前官方 run 或系统临时目录。
 - 默认每次都重新完整执行任务；只有用户明确允许时才复用旧 run。
 - 只使用官方入口 `pipeline.py`。
+- 只要输入中识别到一个或多个小红书分享链接，且用户没有提出与标准任务不一致的新目标，就应直接把这次输入视为本 skill 的标准任务入口，不要再追问“要用什么 skill”或“目标是什么”。
 
 ## 仓库主面
 
@@ -139,6 +140,7 @@ python pipeline.py prepare-run --input-text "<用户原始输入全文>"
 - 如果用户给出了与标准任务不完全一致的额外任务提示词，则为本次 run 生成 run 专属 Prompt，并且只能写入当前 run
 - 如果没有小红书链接且只存在 run 专属 Prompt，则直接围绕该 Prompt 回答，不执行抓取
 - 不要自行创建 `task_input.md`、`m+ task_input.md` 等临时文件名；机器执行优先用 `--input-text`
+- 若输入中已经给出一组小红书链接，且没有额外的新目标要求，则不要再追问“请说明要调用什么 skill”或“请说明任务目标”；这本身就应触发本 skill 的标准任务
 
 ### 阶段 2：登录状态检测
 
@@ -190,6 +192,7 @@ python pipeline.py crawl --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
 
 - 当前 run 只使用 `prompt/used_prompt.md`
 - 分析前应读取每个样本目录内的证据文件和 `reference_index.json`
+- 生成单篇报告前，必须先读取当前样本目录下的 `manifests/note_manifest.json`；报告头部是否写入登录标签与风险提示，只能以该文件中的 `login_mode` 和 `login_mode_note` 为唯一事实来源
 - 图片必须真实提供给模型阅读和思考，尤其是关键正文图片
 - 如果某张图没有成功提供给模型，不要假装已经看过，也不要据此得出肯定结论
 - 若本次是标准任务：
@@ -218,6 +221,7 @@ python pipeline.py validate-contract --run-dir "$OUTPUT_DIR/run_<timestamp>_<tas
 - `logs/final_broadcast.md` 已生成
 - 标准任务下，对话输出必须与 `logs/final_broadcast.md` 完全一致
 - 若分析报告尚未生成，播报必须明确说明当前状态与原因
+- 标准任务下，最终播报中的 `核心结论` 必须基于综合报告里的摘要、关键词、分析总结、跨样本共性机制、方法论条目与综合结论共同提炼，而不是简单复述其中某一段
 - 契约校验通过
 - 不要发明额外输入输出文件名
 - 若 run 内存在人工补充材料，如表格或人工整理结果，应跟随当前 run 存放在 `manual-artifacts/` 下，而不是漂浮到 `OUTPUT_DIR` 根目录

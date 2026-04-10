@@ -568,7 +568,10 @@ def build_core_conclusion(aggregate_report: Path | None) -> str:
     markdown = aggregate_report.read_text(encoding="utf-8")
     parts = [
         _extract_markdown_section(markdown, "摘要概览"),
+        _extract_markdown_section(markdown, "关键词"),
         _extract_markdown_section(markdown, "分析总结：作为转转广告投放专员，应该如何在小红书投广告"),
+        _extract_markdown_section(markdown, "跨样本共性机制"),
+        _extract_markdown_section(markdown, "可沉淀的方法论条目"),
         _extract_markdown_section(markdown, "综合结论"),
     ]
     merged = " ".join(part for part in parts if part)
@@ -582,7 +585,13 @@ def build_core_conclusion(aggregate_report: Path | None) -> str:
         )
     if len(merged) > 300:
         candidate = merged[:300]
-        boundary = max(candidate.rfind("。"), candidate.rfind("！"), candidate.rfind("？"), candidate.rfind("；"))
+        boundary = max(
+            candidate.rfind("。"),
+            candidate.rfind("！"),
+            candidate.rfind("？"),
+            candidate.rfind("；"),
+            candidate.rfind("，"),
+        )
         if boundary >= 100:
             summary = candidate[: boundary + 1].strip()
         else:

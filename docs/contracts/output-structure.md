@@ -11,6 +11,7 @@ Default `OUTPUT_DIR`:
 - `../rednote-ads-placement-analysis-output`
 
 No other run root is considered official.
+If that sibling directory already exists, it must be reused as-is. Only when it does not exist may the pipeline create it in the same sibling location. It must never be created as a hidden directory or at a higher parent level.
 
 ## Required Structure
 
@@ -66,5 +67,6 @@ The following are not valid contract filenames and must not be produced as offic
 - Standard tasks must make the assistant reply exactly match `final_broadcast.md`.
 - If reports are not generated yet, `final_broadcast.md` must state that the run is still waiting for reports.
 - When reports are generated, `final_broadcast.md` must show a Chinese status label and a Chinese login-state label based on the real run facts.
+- The core conclusion in `final_broadcast.md` must be a 100-300 character Chinese synthesis distilled from the aggregate report's key sections, rather than a flat list or a direct copy of any single subsection.
 - If a run writes spreadsheet or other manual artifacts, they must live under the same official run directory, for example `manual-artifacts/spreadsheet/...`.
 - Manual artifacts must not float at the top level of `OUTPUT_DIR/`.
