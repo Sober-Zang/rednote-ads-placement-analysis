@@ -486,10 +486,15 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
                     await asyncio.sleep(2)
             if not allow_wait:
                 return False, "not_logged_in"
-            await crawler.close()
-            crawler = None
-            clear_login_state_dir()
-            crawler, browser_context = await open_probe_context()
+            try:
+                clear_login_state_dir()
+                await browser_context.clear_cookies()
+                await crawler.context_page.evaluate(
+                    "() => { try { localStorage.clear(); } catch (e) {} try { sessionStorage.clear(); } catch (e) {} }"
+                )
+                await crawler.context_page.goto(crawler.index_url, wait_until="domcontentloaded", timeout=120000)
+            except Exception:
+                pass
             print(
                 "当前未检测到已完成的小红书登录，已打开机器控制的 Chrome 并进入小红书。\n"
                 "请在 300 秒内完成登录；若不需要登录，直接关闭浏览器即可，系统会按无登录流程继续。\n"

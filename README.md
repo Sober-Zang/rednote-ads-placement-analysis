@@ -36,6 +36,19 @@
 
 ## 🚀 快速开始
 
+### 📌 优先必读与安装路径
+
+在正式使用前，强烈建议您优先阅读 `rednote-ads-placement-analyzer/SKILL.md` 文件，以快速掌握核心运行机制。
+
+**📁 Skill 推荐部署路径：**
+请优先将本 Skill 克隆至您**当前工作区**的本地目录；若无特定工作区，可安装至系统的**全局默认目录**：
+
+| 操作系统 | 🥇 优先：工作区本地目录 | 🥈 备选：全局默认目录 |
+|---|---|---|
+| **macOS / Linux** | `<workspace>/.agent/skills/` | `~/.agent/skills/` |
+| **Windows** | `<workspace>\.agent\skills\` | `%USERPROFILE%\.agent\skills\` |
+*(注：部署时请在上述路径后追加 `rednote-ads-placement-analysis/`)*
+
 ### 环境要求
 
 本项目作为高阶 Agent Skill，底层采用了现代化的异步架构与多模态解析栈（推荐 Python 3.8+）。
