@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime
 import json
 import re
 from pathlib import Path
@@ -9,6 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from _common import (
+    ALLOWED_WORKSPACE_WRITEBACK,
     FORBIDDEN_RUN_FILENAMES,
     OFFICIAL_RUN_TOPLEVEL,
     OUTPUT_ROOT,
@@ -20,6 +22,7 @@ from _common import (
 )
 
 WINDOWS_ABS_RE = re.compile(r"^[A-Za-z]:[\\/]")
+SOURCE_NOISE_PARTS = {".git", ".venv", "__pycache__"}
 
 
 def is_url(value: str) -> bool:
@@ -42,6 +45,86 @@ def iter_json_values(payload: Any):
             yield from iter_json_values(value)
     elif isinstance(payload, str):
         yield payload
+
+
+def count_citations(text: str) -> int:
+    return len(re.findall(r"\[[A-Z]+\d+\]", text))
+
+
+def validate_single_report_quality(path: Path) -> list[str]:
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    errors: list[str] = []
+    required_tokens = (
+        "关键词",
+        "文本分析",
+        "图片分析",
+        "评论分析",
+        "互动数据",
+        "文本 × 图片",
+        "三者联动机制总结",
+        "后续测试建议",
+    )
+    for token in required_tokens:
+        if token not in text:
+            errors.append(f"Single report missing required section token `{token}`: {path.name}")
+    if "文本 × 评论" not in text and "图片 × 评论" not in text:
+        errors.append(f"Single report must contain at least one cross-comment section: {path.name}")
+    if "风险" not in text and "边界" not in text:
+        errors.append(f"Single report must include risk or boundary judgement: {path.name}")
+    if count_citations(text) < 8:
+        errors.append(f"Single report citation density too low (<8): {path.name}")
+    return errors
+
+
+def validate_aggregate_report_quality(path: Path) -> list[str]:
+    text = path.read_text(encoding="utf-8", errors="ignore")
+    errors: list[str] = []
+    required_tokens = (
+        "样本范围与边界",
+        "共性",
+        "差异",
+        "方法论",
+        "综合结论",
+    )
+    for token in required_tokens:
+        if token not in text:
+            errors.append(f"Aggregate report missing required section token `{token}`: {path.name}")
+    if count_citations(text) < 10:
+        errors.append(f"Aggregate report citation density too low (<10): {path.name}")
+    return errors
+
+
+def parse_created_at(run_manifest: dict[str, Any]) -> float | None:
+    created_at = run_manifest.get("created_at")
+    if not created_at:
+        return None
+    try:
+        return datetime.fromisoformat(str(created_at)).timestamp()
+    except ValueError:
+        return None
+
+
+def validate_workspace_write_boundary(workspace_root: Path, run_started_at: float | None) -> list[str]:
+    if run_started_at is None:
+        return []
+
+    errors: list[str] = []
+    for path in workspace_root.rglob("*"):
+        relpath = path.relative_to(workspace_root)
+        if any(part in SOURCE_NOISE_PARTS for part in relpath.parts):
+            continue
+        if relpath.name == ".DS_Store":
+            continue
+        if relpath.parts and relpath.parts[0] in ALLOWED_WORKSPACE_WRITEBACK:
+            continue
+        if not path.is_file():
+            continue
+        try:
+            if path.stat().st_mtime >= run_started_at:
+                errors.append(f"Workspace write-back detected outside allowlist: {relpath}")
+        except FileNotFoundError:
+            continue
+    return errors
 
 
 def validate_run_dir(run_dir: Path, output_root: Path, workspace_root: Path) -> list[str]:
@@ -75,6 +158,38 @@ def validate_run_dir(run_dir: Path, output_root: Path, workspace_root: Path) -> 
             if is_absolute_path_string(value):
                 errors.append(f"Absolute path string found in JSON: {json_path}")
                 break
+
+    run_manifest_path = run_dir / "manifests" / "run_manifest.json"
+    if run_manifest_path.exists():
+        run_manifest = json.loads(run_manifest_path.read_text(encoding="utf-8"))
+        prompt_mode = run_manifest.get("source_prompt_mode", "standard")
+        successful_note_count = len(run_manifest.get("note_folders", []))
+        single_reports = sorted(run_dir.glob("notes/*/analysis/*_分析报告.md"))
+        aggregate_reports = sorted(run_dir.glob("aggregate/*_综合分析报告.md"))
+        non_empty_single_reports = [path for path in single_reports if path.stat().st_size > 0]
+        non_empty_aggregate_reports = [path for path in aggregate_reports if path.stat().st_size > 0]
+        if prompt_mode == "standard" and successful_note_count == 1 and len(non_empty_single_reports) < 1:
+            errors.append("Standard run with 1 successful sample must contain at least 1 non-empty single-note report.")
+        if prompt_mode == "standard" and successful_note_count >= 2:
+            if len(non_empty_single_reports) < successful_note_count:
+                errors.append("Standard run with multiple successful samples must contain non-empty single-note reports for every successful sample.")
+            if not non_empty_aggregate_reports:
+                errors.append("Standard run with multiple successful samples must contain a non-empty aggregate report.")
+
+        compiled_prompt = run_dir / "prompt" / "compiled_analysis_prompt.md"
+        quality_requirements = run_dir / "logs" / "report_quality_requirements.json"
+        if run_manifest.get("status") in {"analysis_ready", "reports_ready", "no_reports_no_data"}:
+            if not compiled_prompt.exists():
+                errors.append("Analysis-ready run must contain prompt/compiled_analysis_prompt.md.")
+            if not quality_requirements.exists():
+                errors.append("Analysis-ready run must contain logs/report_quality_requirements.json.")
+
+        for report in non_empty_single_reports:
+            errors.extend(validate_single_report_quality(report))
+        for report in non_empty_aggregate_reports:
+            errors.extend(validate_aggregate_report_quality(report))
+
+        errors.extend(validate_workspace_write_boundary(workspace_root, parse_created_at(run_manifest)))
 
     return errors
 

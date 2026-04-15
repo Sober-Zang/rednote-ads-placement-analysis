@@ -38,8 +38,10 @@ Do not fall back to hidden directories under the home directory, and do not crea
 2. `python pipeline.py login-only` (only when the user explicitly asks to log in)
 3. `python pipeline.py prepare-run --input-text "<raw task input>"`
 4. `python pipeline.py crawl --run-dir <official-run-dir>`
-5. `python pipeline.py finalize-broadcast --run-dir <official-run-dir>`
-6. `python pipeline.py validate-contract --run-dir <official-run-dir>`
+5. `python pipeline.py analyze-reports --run-dir <official-run-dir>`
+6. model-driven single / aggregate report generation based on the current run evidence package
+7. `python pipeline.py finalize-broadcast --run-dir <official-run-dir>`
+8. `python pipeline.py validate-contract --run-dir <official-run-dir>`
 
 ## Forbidden Behavior
 
@@ -47,5 +49,6 @@ Do not fall back to hidden directories under the home directory, and do not crea
 - Do not run ad-hoc scripts against the repo when the official entry can do the job.
 - Do not write `runs/`, `browser_data/`, or other runtime state into the repository.
 - Do not create ad-hoc `task_input.md` files inside the repository.
-- If a temporary task file is truly needed, write it inside the current official run instead of inventing a repo-level filename.
+- If a temporary task file is truly needed, write it inside the current official run `temp/` instead of inventing a repo-level filename.
+- Do not create repo-level helper scripts, Markdown drafts, or JSON intermediates during execution. Those belong in `OUTPUT_DIR/run_*/temp/` only.
 - Do not silently continue if a run would require source edits.

@@ -201,12 +201,15 @@ def normalize_login_state_dir() -> Path:
 
 def init_run_dirs(run_dir: Path) -> None:
     for relative in [
+        "creators",
         "manifests",
         "prompt",
         "inputs",
         "notes",
         "aggregate",
         "logs",
+        "manual-artifacts",
+        "temp",
     ]:
         (run_dir / relative).mkdir(parents=True, exist_ok=True)
 
@@ -273,6 +276,7 @@ def prepare_run(
         "source_prompt_mode": mode,
         "explicit_instruction": explicit_instruction,
         "chat_output_mode": "strict_final_broadcast_match" if mode == "standard" else "contextual_response",
+        "assistant_reply_mode": "strict_final_broadcast_match" if mode == "standard" else "contextual_response",
         "valid_links": [entry["raw_url"] for entry in valid_entries],
         "invalid_links": [entry["raw_url"] for entry in entries if not entry["is_valid_xhs"]],
         "note_folders": [],
@@ -449,7 +453,6 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
     from media_platform.xhs.core import XiaoHongShuCrawler  # type: ignore
     import config  # type: ignore
 
-    crawler: Any = None
     try:
         normalized_login_state_dir = normalize_login_state_dir()
         config.apply_runtime_config(
@@ -476,43 +479,59 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
                 current.xhs_client = await current.create_xhs_client(None)
                 return current, browser_context
 
-            crawler, browser_context = await open_probe_context()
-            initial_probe_attempts = 4 if allow_wait else 1
-            for attempt in range(initial_probe_attempts):
-                await crawler.xhs_client.update_cookies(browser_context)
-                if await crawler.xhs_client.pong():
-                    return True, "auto_detected_existing_login"
-                if attempt < initial_probe_attempts - 1:
-                    await asyncio.sleep(2)
+            probe_crawler: Any | None = None
+            probe_browser_context: Any | None = None
+            try:
+                probe_crawler, probe_browser_context = await open_probe_context()
+                initial_probe_attempts = 4 if allow_wait else 1
+                for attempt in range(initial_probe_attempts):
+                    await probe_crawler.xhs_client.update_cookies(probe_browser_context)
+                    if await probe_crawler.xhs_client.pong():
+                        return True, "auto_detected_existing_login"
+                    if attempt < initial_probe_attempts - 1:
+                        await asyncio.sleep(2)
+            finally:
+                if probe_crawler is not None:
+                    try:
+                        await probe_crawler.close()
+                    except Exception:
+                        pass
+
             if not allow_wait:
                 return False, "not_logged_in"
-            await crawler.close()
-            crawler = None
+
             clear_login_state_dir()
-            crawler, browser_context = await open_probe_context()
+            wait_crawler: Any | None = None
+            wait_browser_context: Any | None = None
+            try:
+                wait_crawler, wait_browser_context = await open_probe_context()
+            except Exception as exc:
+                return False, f"login_window_error:{exc}"
+
             print(
                 "当前未检测到已完成的小红书登录，已打开机器控制的 Chrome 并进入小红书。\n"
                 "请在 300 秒内完成登录；若不需要登录，直接关闭浏览器即可，系统会按无登录流程继续。\n"
                 "登录成功后无需额外回复，系统会自动继续后续任务。",
                 flush=True,
             )
-            deadline = asyncio.get_running_loop().time() + wait_seconds
-            while asyncio.get_running_loop().time() < deadline:
-                if crawler.context_page.is_closed():
-                    return False, "browser_closed"
-                await crawler.xhs_client.update_cookies(browser_context)
-                if await crawler.xhs_client.pong():
-                    return True, "login_confirmed"
-                await asyncio.sleep(3)
-            return False, "timeout"
+            try:
+                deadline = asyncio.get_running_loop().time() + wait_seconds
+                while asyncio.get_running_loop().time() < deadline:
+                    if wait_crawler.context_page.is_closed():
+                        return False, "browser_closed"
+                    await wait_crawler.xhs_client.update_cookies(wait_browser_context)
+                    if await wait_crawler.xhs_client.pong():
+                        return True, "login_confirmed"
+                    await asyncio.sleep(3)
+                return False, "timeout"
+            finally:
+                if wait_crawler is not None:
+                    try:
+                        await wait_crawler.close()
+                    except Exception:
+                        pass
     except Exception as exc:
         return False, f"login_window_error:{exc}"
-    finally:
-        try:
-            if crawler is not None:
-                await crawler.close()
-        except Exception:
-            pass
 
 
 async def determine_login_mode(config_module) -> tuple[str, str]:
@@ -607,6 +626,338 @@ def build_core_conclusion(aggregate_report: Path | None) -> str:
     return summary
 
 
+def get_successful_note_dirs(run_path: Path) -> list[Path]:
+    note_dirs: list[Path] = []
+    for note_dir in sorted(run_path.glob("notes/*")):
+        if (note_dir / "manifests" / "note_manifest.json").exists():
+            note_dirs.append(note_dir)
+    return note_dirs
+
+
+def expected_single_report_path(note_dir: Path) -> Path:
+    note_manifest = read_json(note_dir / "manifests" / "note_manifest.json")
+    title = sanitize_fs_component(note_manifest.get("title", note_dir.name), limit=80)
+    author = sanitize_fs_component(note_manifest.get("author_nickname", "未知作者"), limit=40)
+    return note_dir / "analysis" / f"{title}+{author}_分析报告.md"
+
+
+def expected_aggregate_report_path(run_path: Path, run_manifest: dict[str, Any]) -> Path:
+    created_at = str(run_manifest.get("created_at", ""))
+    date_part = created_at[:10].replace("-", "") if created_at else datetime.now().strftime("%Y%m%d")
+    task_slug = sanitize_fs_component(run_manifest.get("task_slug", "本次任务"), limit=60)
+    return run_path / "aggregate" / f"{task_slug}_{date_part}_综合分析报告.md"
+
+
+def _safe_read_json(path: Path) -> Any:
+    try:
+        return read_json(path)
+    except Exception:
+        return None
+
+
+def _count_nested_items(payload: Any) -> int:
+    if payload is None:
+        return 0
+    if isinstance(payload, list):
+        return len(payload)
+    if isinstance(payload, dict):
+        for key in ("comments", "data", "items", "list"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                return len(value)
+        return len(payload)
+    return 0
+
+
+def _extract_metrics_summary(payload: Any) -> dict[str, Any]:
+    if not isinstance(payload, dict):
+        return {}
+    summary: dict[str, Any] = {}
+    for key in (
+        "liked_count",
+        "collected_count",
+        "comment_count",
+        "share_count",
+        "liked",
+        "collected",
+        "comments",
+        "shares",
+    ):
+        if key in payload:
+            summary[key] = payload[key]
+    return summary
+
+
+def _count_reference_entries(payload: Any) -> int:
+    if isinstance(payload, dict):
+        return sum(1 for value in payload.values() if value)
+    if isinstance(payload, list):
+        return len(payload)
+    return 0
+
+
+def build_note_evidence_digest(note_dir: Path, run_path: Path) -> dict[str, Any]:
+    note_manifest_path = note_dir / "manifests" / "note_manifest.json"
+    reference_index_path = note_dir / "manifests" / "reference_index.json"
+    note_text_path = note_dir / "raw" / "note_text.md"
+    comments_path = note_dir / "raw" / "comments.json"
+    metrics_path = note_dir / "raw" / "metrics.json"
+    raw_note_path = note_dir / "raw" / "note.json"
+    images_dir = note_dir / "images"
+
+    note_manifest = read_json(note_manifest_path)
+    reference_index = _safe_read_json(reference_index_path)
+    comments_payload = _safe_read_json(comments_path)
+    metrics_payload = _safe_read_json(metrics_path)
+
+    image_files = sorted(
+        [
+            path
+            for path in images_dir.rglob("*")
+            if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+        ]
+    )
+
+    missing_inputs: list[str] = []
+    for label, path in (
+        ("raw/note_text.md", note_text_path),
+        ("raw/comments.json", comments_path),
+        ("raw/metrics.json", metrics_path),
+        ("manifests/reference_index.json", reference_index_path),
+    ):
+        if not path.exists():
+            missing_inputs.append(label)
+    if not image_files:
+        missing_inputs.append("images/")
+
+    digest = {
+        "folder_path": to_run_relative(note_dir, run_path),
+        "title": note_manifest.get("title", note_dir.name),
+        "author_nickname": note_manifest.get("author_nickname", "未知作者"),
+        "note_id": note_manifest.get("note_id", ""),
+        "login_mode": note_manifest.get("login_mode", "anonymous"),
+        "login_mode_note": note_manifest.get("login_mode_note", ""),
+        "output_report_path": to_run_relative(expected_single_report_path(note_dir), run_path),
+        "evidence_paths": {
+            "note_manifest": to_run_relative(note_manifest_path, run_path),
+            "reference_index": to_run_relative(reference_index_path, run_path) if reference_index_path.exists() else "",
+            "note_text": to_run_relative(note_text_path, run_path) if note_text_path.exists() else "",
+            "comments": to_run_relative(comments_path, run_path) if comments_path.exists() else "",
+            "metrics": to_run_relative(metrics_path, run_path) if metrics_path.exists() else "",
+            "raw_note": to_run_relative(raw_note_path, run_path) if raw_note_path.exists() else "",
+            "images_dir": to_run_relative(images_dir, run_path) if images_dir.exists() else "",
+            "image_samples": [to_run_relative(path, run_path) for path in image_files[:12]],
+        },
+        "evidence_counts": {
+            "reference_entries": _count_reference_entries(reference_index),
+            "image_files": len(image_files),
+            "comment_entries": _count_nested_items(comments_payload),
+        },
+        "metrics_summary": _extract_metrics_summary(metrics_payload),
+        "missing_inputs": missing_inputs,
+        "required_sections": [
+            "关键词",
+            "文本分析",
+            "图片分析",
+            "评论分析",
+            "互动数据辅助判断",
+            "文本 × 图片",
+            "文本 × 评论",
+            "图片 × 评论",
+            "三者联动机制总结",
+            "风险与边界",
+            "后续测试建议",
+        ],
+        "quality_gates": {
+            "min_citation_count": 8,
+            "must_include_platform_context": True,
+            "must_include_risk_boundary": True,
+            "must_cover_text_image_comment_metrics": True,
+        },
+    }
+    return digest
+
+
+def build_aggregate_evidence_digest(
+    run_path: Path,
+    run_manifest: dict[str, Any],
+    note_digests: list[dict[str, Any]],
+    invalid_links: list[str],
+) -> dict[str, Any]:
+    aggregate_path = expected_aggregate_report_path(run_path, run_manifest)
+    return {
+        "run_id": run_manifest.get("run_id", run_path.name),
+        "task_slug": run_manifest.get("task_slug", ""),
+        "source_prompt_mode": run_manifest.get("source_prompt_mode", "standard"),
+        "invalid_links": invalid_links,
+        "successful_samples": [
+            {
+                "title": digest["title"],
+                "author_nickname": digest["author_nickname"],
+                "folder_path": digest["folder_path"],
+                "single_report_path": digest["output_report_path"],
+                "reference_entries": digest["evidence_counts"]["reference_entries"],
+                "comment_entries": digest["evidence_counts"]["comment_entries"],
+                "image_files": digest["evidence_counts"]["image_files"],
+            }
+            for digest in note_digests
+        ],
+        "output_report_path": to_run_relative(aggregate_path, run_path),
+        "required_sections": [
+            "摘要概览",
+            "样本范围与边界",
+            "单篇关键信号回收",
+            "共性机制提炼",
+            "差异机制与对应投放角色",
+            "分析总结：作为转转广告投放专员，应该如何在小红书投广告",
+            "可复用的方法论",
+            "综合结论",
+        ],
+        "quality_gates": {
+            "min_citation_count": 10,
+            "must_include_common_and_difference": True,
+            "must_include_boundary_section": True,
+            "must_not_be_template_only": True,
+        },
+    }
+
+
+def build_compiled_analysis_prompt(
+    run_path: Path,
+    run_manifest: dict[str, Any],
+    prompt_text: str,
+    note_digests: list[dict[str, Any]],
+    aggregate_digest: dict[str, Any] | None,
+) -> str:
+    lines = [
+        "# 编译后的分析执行包",
+        "",
+        "## 任务定位",
+        "",
+        "- 这是标准任务的正式分析输入包。",
+        "- 必须以 `prompt/used_prompt.md` 为内容生成核心，不允许跳过标准提示词自由发挥。",
+        "- 允许模型自由形成判断，但所有判断都必须来自当前 run 的真实证据，而不是历史记忆或模板文本。",
+        "- 禁止在仓库源码树内写任何临时脚本、草稿或中间产物；如确需临时文件，只能写到当前 run 的 `temp/`。",
+        "",
+        "## 当前 run",
+        "",
+        f"- run_id: {run_manifest.get('run_id', run_path.name)}",
+        f"- prompt_mode: {run_manifest.get('source_prompt_mode', 'standard')}",
+        f"- used_prompt: {to_run_relative(run_path / 'prompt' / 'used_prompt.md', run_path)}",
+        f"- temp_dir: {to_run_relative(run_path / 'temp', run_path)}",
+        "",
+        "## 标准提示词原文",
+        "",
+        prompt_text.rstrip(),
+        "",
+        "## 产出要求",
+        "",
+        "- 单篇报告与综合报告都必须由模型基于当前 run 的证据动态生成并落盘。",
+        "- 不允许预写固定正文，不允许复制历史报告，不允许只写结论层摘要。",
+        "- 优先恢复 `v1.1.2` 风格的中间推理层：证据回收、互动结构、差异机制、边界判断、可迁移性分析。",
+        "- 如果证据不足，应明确写出边界，而不是用模板语言补齐。",
+        "",
+        "## 单篇样本清单",
+        "",
+    ]
+    for index, digest in enumerate(note_digests, start=1):
+        lines.extend(
+            [
+                f"### 样本 {index}",
+                f"- 标题: {digest['title']}",
+                f"- 作者: {digest['author_nickname']}",
+                f"- evidence_digest: {digest['folder_path']}/manifests/evidence_digest.json",
+                f"- 输出路径: {digest['output_report_path']}",
+                f"- 缺失输入: {', '.join(digest['missing_inputs']) if digest['missing_inputs'] else '无'}",
+                f"- 最低引用数: {digest['quality_gates']['min_citation_count']}",
+                "",
+            ]
+        )
+    if aggregate_digest is not None:
+        lines.extend(
+            [
+                "## 综合报告",
+                "",
+                f"- evidence_digest: {to_run_relative(run_path / 'aggregate' / 'evidence_digest.json', run_path)}",
+                f"- 输出路径: {aggregate_digest['output_report_path']}",
+                f"- 最低引用数: {aggregate_digest['quality_gates']['min_citation_count']}",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## 最终检查",
+            "",
+            "- 所有关键判断都要附引用标签，并能回到对应 `reference_index.json`。",
+            "- 单篇必须覆盖文本、图片、评论、互动、关联机制、风险边界与测试建议。",
+            "- 综合必须同时回答：共性是什么、差异是什么、哪些可迁移、哪些不可机械复用。",
+            "- 标准任务完成前，不能用 `final_broadcast.md` 代替单篇报告和综合报告。",
+            "",
+        ]
+    )
+    return "\n".join(lines).rstrip() + "\n"
+
+
+async def analyze_reports(run_dir: str) -> dict[str, Any]:
+    output_root, _ = ensure_contract_roots()
+    run_path = Path(run_dir)
+    if not is_within(run_path, output_root):
+        raise SystemExit(f"run-dir must live under OUTPUT_DIR: {output_root}")
+
+    run_manifest_path = run_path / "manifests" / "run_manifest.json"
+    run_manifest = read_json(run_manifest_path)
+    prompt_path = run_path / "prompt" / "used_prompt.md"
+    prompt_text = prompt_path.read_text(encoding="utf-8")
+    note_dirs = get_successful_note_dirs(run_path)
+    if not note_dirs:
+        raise SystemExit("当前 run 没有成功下载的样本，无法准备分析任务。")
+
+    note_digests: list[dict[str, Any]] = []
+    for note_dir in note_dirs:
+        digest = build_note_evidence_digest(note_dir, run_path)
+        note_digests.append(digest)
+        write_json(note_dir / "manifests" / "evidence_digest.json", digest)
+        expected_single_report_path(note_dir).parent.mkdir(parents=True, exist_ok=True)
+
+    invalid_links = [entry["raw_url"] for entry in read_json(run_path / "manifests" / "link_manifest.json") if not entry["is_valid_xhs"]]
+    aggregate_digest: dict[str, Any] | None = None
+    if len(note_digests) >= 2:
+        aggregate_digest = build_aggregate_evidence_digest(run_path, run_manifest, note_digests, invalid_links)
+        write_json(run_path / "aggregate" / "evidence_digest.json", aggregate_digest)
+        expected_aggregate_report_path(run_path, run_manifest).parent.mkdir(parents=True, exist_ok=True)
+
+    compiled_prompt = build_compiled_analysis_prompt(run_path, run_manifest, prompt_text, note_digests, aggregate_digest)
+    compiled_prompt_path = run_path / "prompt" / "compiled_analysis_prompt.md"
+    write_text(compiled_prompt_path, compiled_prompt)
+
+    quality_requirements = {
+        "single_report_requirements": note_digests,
+        "aggregate_report_requirements": aggregate_digest,
+        "workspace_write_boundary": {
+            "allowed_workspace_writeback": ["xhs_user_data_dir/"],
+            "allowed_run_write_dirs": ["aggregate/", "creators/", "inputs/", "logs/", "manual-artifacts/", "manifests/", "notes/", "prompt/", "temp/"],
+        },
+    }
+    write_json(run_path / "logs" / "report_quality_requirements.json", quality_requirements)
+
+    run_manifest["status"] = "analysis_ready"
+    run_manifest["analysis_prompt_path"] = to_run_relative(compiled_prompt_path, run_path)
+    run_manifest["analysis_requirements_path"] = to_run_relative(run_path / "logs" / "report_quality_requirements.json", run_path)
+    run_manifest["analysis_note_digests"] = [
+        f"{digest['folder_path']}/manifests/evidence_digest.json" for digest in note_digests
+    ]
+    if aggregate_digest is not None:
+        run_manifest["analysis_aggregate_digest"] = to_run_relative(run_path / "aggregate" / "evidence_digest.json", run_path)
+    write_json(run_manifest_path, run_manifest)
+    return {
+        "run_dir": str(run_path),
+        "single_reports_expected": len(note_digests),
+        "aggregate_report_expected": aggregate_digest is not None,
+        "status": run_manifest["status"],
+        "compiled_prompt_path": str(compiled_prompt_path),
+    }
+
+
 def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     output_root, _ = ensure_contract_roots()
     run_path = Path(run_dir)
@@ -618,9 +969,26 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     invalid_links = [entry["raw_url"] for entry in link_entries if not entry["is_valid_xhs"]]
     single_reports, aggregate_reports = find_reports(run_path)
     login_mode = run_manifest.get("login_mode", "anonymous")
+    prompt_mode = run_manifest.get("source_prompt_mode", "standard")
+    successful_note_count = len(get_successful_note_dirs(run_path))
+    missing_reports: list[str] = []
+    if prompt_mode == "standard" and successful_note_count > 0:
+        if len(single_reports) < successful_note_count:
+            missing_reports.append("单篇报告未全部生成")
+        if successful_note_count >= 2 and not aggregate_reports:
+            missing_reports.append("综合报告未生成")
+        if missing_reports:
+            run_manifest["status"] = "analysis_ready"
+            write_json(run_manifest_path, run_manifest)
+            return {
+                "ok": False,
+                "run_dir": str(run_path),
+                "status": run_manifest["status"],
+                "errors": missing_reports,
+            }
     has_reports = bool(single_reports or aggregate_reports)
     aggregate_report = aggregate_reports[0] if aggregate_reports else None
-    broadcast_status = "reports_ready" if has_reports else "awaiting_reports"
+    broadcast_status = "reports_ready" if has_reports else "no_reports_no_data"
     sub_comment_error_happened = False
     for log_path in run_path.rglob("*.log"):
         try:
@@ -643,7 +1011,7 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
 
     header = "✅ 小红书广告投放分析完成！" if has_reports else "⚠️ 小红书抓取已完成，但分析报告尚未生成。"
     lines = [header, "", "📁 输出目录", f"* 新 run: {run_path.name}"]
-    status_label = "报告已就绪（reports_ready）" if broadcast_status == "reports_ready" else "等待报告（awaiting_reports）"
+    status_label = "报告已就绪（reports_ready）" if broadcast_status == "reports_ready" else "无报告（no_reports_no_data）"
     login_label = "已登录（authenticated）" if login_mode == "authenticated" else "未登录（anonymous）"
     lines.append(f"* 状态: {status_label}")
     lines.append(f"* 登录状态: {login_label}")
@@ -663,8 +1031,8 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     if has_reports:
         lines.append(f"* {build_core_conclusion(aggregate_report)}")
     else:
-        lines.append("* 当前 run 仅完成抓取与结构化归档，尚未进入报告产出阶段。")
-        lines.append("* 报告未生成前，不应把本次结果视为最终交付。")
+        lines.append("* 当前 run 没有成功样本支持报告生成，因此本次没有单篇报告和综合报告。")
+        lines.append("* 这类结果只能视为失败样本说明，不应被当作完整分析交付。")
 
     lines.extend(["", "⚠️注意"])
     if login_mode != "authenticated":
@@ -713,6 +1081,9 @@ def build_parser() -> argparse.ArgumentParser:
     crawl = subparsers.add_parser("crawl")
     crawl.add_argument("--run-dir", required=True)
 
+    analyze = subparsers.add_parser("analyze-reports")
+    analyze.add_argument("--run-dir", required=True)
+
     finalize = subparsers.add_parser("finalize-broadcast")
     finalize.add_argument("--run-dir", required=True)
     return parser
@@ -733,10 +1104,14 @@ def main() -> int:
         summary = asyncio.run(crawl_run(args.run_dir))
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
+    if args.command == "analyze-reports":
+        summary = asyncio.run(analyze_reports(args.run_dir))
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
     if args.command == "finalize-broadcast":
         summary = finalize_broadcast(args.run_dir)
         print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
+        return 0 if summary.get("ok", True) else 3
     return 1
 
 
