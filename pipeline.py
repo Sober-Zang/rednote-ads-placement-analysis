@@ -15,7 +15,6 @@ SCRIPT_BY_COMMAND = {
     "login-only": SCRIPTS_ROOT / "run_pipeline.py",
     "prepare-run": SCRIPTS_ROOT / "run_pipeline.py",
     "crawl": SCRIPTS_ROOT / "run_pipeline.py",
-    "analyze-reports": SCRIPTS_ROOT / "run_pipeline.py",
     "finalize-broadcast": SCRIPTS_ROOT / "run_pipeline.py",
     "validate-contract": SCRIPTS_ROOT / "validate_contract.py",
 }
@@ -39,7 +38,7 @@ def main() -> int:
     if forwarded and forwarded[0] == "--":
         forwarded = forwarded[1:]
 
-    if parsed.command in {"login-only", "prepare-run", "crawl", "analyze-reports", "finalize-broadcast"}:
+    if parsed.command in {"login-only", "prepare-run", "crawl", "finalize-broadcast"}:
         preflight = subprocess.run(
             [sys.executable, str(SCRIPT_BY_COMMAND["check-env"])],
             cwd=REPO_ROOT,
@@ -48,7 +47,7 @@ def main() -> int:
             return preflight.returncode
 
     command = [sys.executable, str(script)]
-    if parsed.command in {"login-only", "prepare-run", "crawl", "analyze-reports", "finalize-broadcast"}:
+    if parsed.command in {"login-only", "prepare-run", "crawl", "finalize-broadcast"}:
         command.append(parsed.command)
     command.extend(forwarded)
     completed = subprocess.run(command, cwd=REPO_ROOT)

@@ -20,8 +20,8 @@ DEFAULT_RUNTIME_ROOT = DEFAULT_OUTPUT_ROOT
 OUTPUT_ROOT = Path(os.environ.get("OUTPUT_DIR", DEFAULT_OUTPUT_ROOT)).expanduser().resolve()
 RUNTIME_ROOT = Path(os.environ.get("RUNTIME_DIR", DEFAULT_RUNTIME_ROOT)).expanduser().resolve()
 RUNS_ROOT = OUTPUT_ROOT
-CONTRACT_VERSION = "2026-04-12"
-OFFICIAL_RUN_TOPLEVEL = ("aggregate", "creators", "inputs", "logs", "manual-artifacts", "manifests", "notes", "prompt", "temp")
+CONTRACT_VERSION = "2026-04-08"
+OFFICIAL_RUN_TOPLEVEL = ("aggregate", "creators", "inputs", "logs", "manifests", "notes", "prompt")
 REQUIRED_RUN_FILES = (
     "inputs/raw_user_input.md",
     "inputs/invalid_links.md",
@@ -35,9 +35,6 @@ FORBIDDEN_RUN_FILENAMES = (
     "used_prompt.txt",
     "link_manifest.txt",
     "run_manifest.txt",
-)
-ALLOWED_WORKSPACE_WRITEBACK = (
-    "xhs_user_data_dir",
 )
 
 
