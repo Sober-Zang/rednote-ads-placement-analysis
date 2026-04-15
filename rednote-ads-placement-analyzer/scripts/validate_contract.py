@@ -76,6 +76,23 @@ def validate_run_dir(run_dir: Path, output_root: Path, workspace_root: Path) -> 
                 errors.append(f"Absolute path string found in JSON: {json_path}")
                 break
 
+    run_manifest_path = run_dir / "manifests" / "run_manifest.json"
+    if run_manifest_path.exists():
+        run_manifest = json.loads(run_manifest_path.read_text(encoding="utf-8"))
+        prompt_mode = run_manifest.get("source_prompt_mode", "standard")
+        successful_note_count = len(run_manifest.get("note_folders", []))
+        single_reports = sorted(run_dir.glob("notes/*/analysis/*_分析报告.md"))
+        aggregate_reports = sorted(run_dir.glob("aggregate/*_综合分析报告.md"))
+        non_empty_single_reports = [path for path in single_reports if path.stat().st_size > 0]
+        non_empty_aggregate_reports = [path for path in aggregate_reports if path.stat().st_size > 0]
+        if prompt_mode == "standard" and successful_note_count == 1 and len(non_empty_single_reports) < 1:
+            errors.append("Standard run with 1 successful sample must contain at least 1 non-empty single-note report.")
+        if prompt_mode == "standard" and successful_note_count >= 2:
+            if len(non_empty_single_reports) < successful_note_count:
+                errors.append("Standard run with multiple successful samples must contain non-empty single-note reports for every successful sample.")
+            if not non_empty_aggregate_reports:
+                errors.append("Standard run with multiple successful samples must contain a non-empty aggregate report.")
+
     return errors
 
 

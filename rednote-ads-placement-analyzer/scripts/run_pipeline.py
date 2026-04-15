@@ -273,6 +273,7 @@ def prepare_run(
         "source_prompt_mode": mode,
         "explicit_instruction": explicit_instruction,
         "chat_output_mode": "strict_final_broadcast_match" if mode == "standard" else "contextual_response",
+        "assistant_reply_mode": "strict_final_broadcast_match" if mode == "standard" else "contextual_response",
         "valid_links": [entry["raw_url"] for entry in valid_entries],
         "invalid_links": [entry["raw_url"] for entry in entries if not entry["is_valid_xhs"]],
         "note_folders": [],
@@ -449,7 +450,6 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
     from media_platform.xhs.core import XiaoHongShuCrawler  # type: ignore
     import config  # type: ignore
 
-    crawler: Any = None
     try:
         normalized_login_state_dir = normalize_login_state_dir()
         config.apply_runtime_config(
@@ -476,48 +476,59 @@ async def launch_login_probe_browser(wait_seconds: int = 300, allow_wait: bool =
                 current.xhs_client = await current.create_xhs_client(None)
                 return current, browser_context
 
-            crawler, browser_context = await open_probe_context()
-            initial_probe_attempts = 4 if allow_wait else 1
-            for attempt in range(initial_probe_attempts):
-                await crawler.xhs_client.update_cookies(browser_context)
-                if await crawler.xhs_client.pong():
-                    return True, "auto_detected_existing_login"
-                if attempt < initial_probe_attempts - 1:
-                    await asyncio.sleep(2)
+            probe_crawler: Any | None = None
+            probe_browser_context: Any | None = None
+            try:
+                probe_crawler, probe_browser_context = await open_probe_context()
+                initial_probe_attempts = 4 if allow_wait else 1
+                for attempt in range(initial_probe_attempts):
+                    await probe_crawler.xhs_client.update_cookies(probe_browser_context)
+                    if await probe_crawler.xhs_client.pong():
+                        return True, "auto_detected_existing_login"
+                    if attempt < initial_probe_attempts - 1:
+                        await asyncio.sleep(2)
+            finally:
+                if probe_crawler is not None:
+                    try:
+                        await probe_crawler.close()
+                    except Exception:
+                        pass
+
             if not allow_wait:
                 return False, "not_logged_in"
+
+            clear_login_state_dir()
+            wait_crawler: Any | None = None
+            wait_browser_context: Any | None = None
             try:
-                clear_login_state_dir()
-                await browser_context.clear_cookies()
-                await crawler.context_page.evaluate(
-                    "() => { try { localStorage.clear(); } catch (e) {} try { sessionStorage.clear(); } catch (e) {} }"
-                )
-                await crawler.context_page.goto(crawler.index_url, wait_until="domcontentloaded", timeout=120000)
-            except Exception:
-                pass
+                wait_crawler, wait_browser_context = await open_probe_context()
+            except Exception as exc:
+                return False, f"login_window_error:{exc}"
+
             print(
                 "当前未检测到已完成的小红书登录，已打开机器控制的 Chrome 并进入小红书。\n"
                 "请在 300 秒内完成登录；若不需要登录，直接关闭浏览器即可，系统会按无登录流程继续。\n"
                 "登录成功后无需额外回复，系统会自动继续后续任务。",
                 flush=True,
             )
-            deadline = asyncio.get_running_loop().time() + wait_seconds
-            while asyncio.get_running_loop().time() < deadline:
-                if crawler.context_page.is_closed():
-                    return False, "browser_closed"
-                await crawler.xhs_client.update_cookies(browser_context)
-                if await crawler.xhs_client.pong():
-                    return True, "login_confirmed"
-                await asyncio.sleep(3)
-            return False, "timeout"
+            try:
+                deadline = asyncio.get_running_loop().time() + wait_seconds
+                while asyncio.get_running_loop().time() < deadline:
+                    if wait_crawler.context_page.is_closed():
+                        return False, "browser_closed"
+                    await wait_crawler.xhs_client.update_cookies(wait_browser_context)
+                    if await wait_crawler.xhs_client.pong():
+                        return True, "login_confirmed"
+                    await asyncio.sleep(3)
+                return False, "timeout"
+            finally:
+                if wait_crawler is not None:
+                    try:
+                        await wait_crawler.close()
+                    except Exception:
+                        pass
     except Exception as exc:
         return False, f"login_window_error:{exc}"
-    finally:
-        try:
-            if crawler is not None:
-                await crawler.close()
-        except Exception:
-            pass
 
 
 async def determine_login_mode(config_module) -> tuple[str, str]:
@@ -612,6 +623,68 @@ def build_core_conclusion(aggregate_report: Path | None) -> str:
     return summary
 
 
+def get_prompt_mode(run_path: Path) -> dict[str, Any]:
+    return read_json(run_path / "prompt" / "prompt_mode.json")
+
+
+def get_successful_note_dirs(run_path: Path) -> list[Path]:
+    note_dirs: list[Path] = []
+    for note_dir in sorted(run_path.glob("notes/*")):
+        manifest_path = note_dir / "manifests" / "note_manifest.json"
+        if manifest_path.exists():
+            note_dirs.append(note_dir)
+    return note_dirs
+
+
+def expected_single_report_path(note_dir: Path) -> Path:
+    note_manifest_path = note_dir / "manifests" / "note_manifest.json"
+    note_manifest = read_json(note_manifest_path)
+    title = sanitize_fs_component(note_manifest.get("title", note_dir.name), limit=80)
+    author = sanitize_fs_component(note_manifest.get("author_nickname", "未知作者"), limit=40)
+    return note_dir / "analysis" / f"{title}+{author}_分析报告.md"
+
+
+def expected_aggregate_report_path(run_path: Path, run_manifest: dict[str, Any]) -> Path:
+    created_at = str(run_manifest.get("created_at", ""))
+    date_part = created_at[:10].replace("-", "") if created_at else datetime.now().strftime("%Y%m%d")
+    task_slug = sanitize_fs_component(run_manifest.get("task_slug", "本次任务"), limit=60)
+    return run_path / "aggregate" / f"{task_slug}_{date_part}_综合分析报告.md"
+
+
+async def analyze_reports(run_dir: str) -> dict[str, Any]:
+    output_root, _ = ensure_contract_roots()
+    run_path = Path(run_dir)
+    if not is_within(run_path, output_root):
+        raise SystemExit(f"run-dir must live under OUTPUT_DIR: {output_root}")
+
+    run_manifest_path = run_path / "manifests" / "run_manifest.json"
+    run_manifest = read_json(run_manifest_path)
+    prompt_path = run_path / "prompt" / "used_prompt.md"
+    note_dirs = get_successful_note_dirs(run_path)
+    if not note_dirs:
+        raise SystemExit("当前 run 没有成功下载的样本，无法生成报告。")
+    for note_dir in note_dirs:
+        report_path = expected_single_report_path(note_dir)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        note_manifest_path = note_dir / "manifests" / "note_manifest.json"
+        note_manifest = read_json(note_manifest_path)
+        note_manifest["analysis_report_path"] = to_run_relative(report_path, run_path) if report_path.exists() else ""
+        write_json(note_manifest_path, note_manifest)
+    if len(note_dirs) >= 2:
+        aggregate_report = expected_aggregate_report_path(run_path, run_manifest)
+        aggregate_report.parent.mkdir(parents=True, exist_ok=True)
+
+    run_manifest["status"] = "analysis_requested"
+    run_manifest["analysis_prompt_path"] = to_run_relative(prompt_path, run_path)
+    write_json(run_manifest_path, run_manifest)
+    return {
+        "run_dir": str(run_path),
+        "single_reports_expected": len(note_dirs),
+        "aggregate_report_expected": len(note_dirs) >= 2,
+        "status": run_manifest["status"],
+    }
+
+
 def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     output_root, _ = ensure_contract_roots()
     run_path = Path(run_dir)
@@ -623,9 +696,27 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     invalid_links = [entry["raw_url"] for entry in link_entries if not entry["is_valid_xhs"]]
     single_reports, aggregate_reports = find_reports(run_path)
     login_mode = run_manifest.get("login_mode", "anonymous")
+    prompt_mode = run_manifest.get("source_prompt_mode", "standard")
+    successful_note_count = len(get_successful_note_dirs(run_path))
+    missing_reports: list[str] = []
+    if prompt_mode == "standard" and successful_note_count > 0:
+        if len(single_reports) < successful_note_count:
+            missing_reports.append("单篇报告未全部生成")
+        if successful_note_count >= 2:
+            if not aggregate_reports:
+                missing_reports.append("综合报告未生成")
+        if missing_reports:
+            run_manifest["status"] = "analysis_requested"
+            write_json(run_manifest_path, run_manifest)
+            return {
+                "ok": False,
+                "run_dir": str(run_path),
+                "status": run_manifest["status"],
+                "errors": missing_reports,
+            }
     has_reports = bool(single_reports or aggregate_reports)
     aggregate_report = aggregate_reports[0] if aggregate_reports else None
-    broadcast_status = "reports_ready" if has_reports else "awaiting_reports"
+    broadcast_status = "reports_ready" if has_reports else "no_reports_no_data"
     sub_comment_error_happened = False
     for log_path in run_path.rglob("*.log"):
         try:
@@ -648,7 +739,7 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
 
     header = "✅ 小红书广告投放分析完成！" if has_reports else "⚠️ 小红书抓取已完成，但分析报告尚未生成。"
     lines = [header, "", "📁 输出目录", f"* 新 run: {run_path.name}"]
-    status_label = "报告已就绪（reports_ready）" if broadcast_status == "reports_ready" else "等待报告（awaiting_reports）"
+    status_label = "报告已就绪（reports_ready）" if broadcast_status == "reports_ready" else "无报告（no_reports_no_data）"
     login_label = "已登录（authenticated）" if login_mode == "authenticated" else "未登录（anonymous）"
     lines.append(f"* 状态: {status_label}")
     lines.append(f"* 登录状态: {login_label}")
@@ -668,8 +759,8 @@ def finalize_broadcast(run_dir: str) -> dict[str, Any]:
     if has_reports:
         lines.append(f"* {build_core_conclusion(aggregate_report)}")
     else:
-        lines.append("* 当前 run 仅完成抓取与结构化归档，尚未进入报告产出阶段。")
-        lines.append("* 报告未生成前，不应把本次结果视为最终交付。")
+        lines.append("* 当前 run 没有成功样本支持报告生成，因此本次没有单篇报告和综合报告。")
+        lines.append("* 这类结果只能视为失败样本说明，不应被当作完整分析交付。")
 
     lines.extend(["", "⚠️注意"])
     if login_mode != "authenticated":
@@ -718,6 +809,9 @@ def build_parser() -> argparse.ArgumentParser:
     crawl = subparsers.add_parser("crawl")
     crawl.add_argument("--run-dir", required=True)
 
+    analyze = subparsers.add_parser("analyze-reports")
+    analyze.add_argument("--run-dir", required=True)
+
     finalize = subparsers.add_parser("finalize-broadcast")
     finalize.add_argument("--run-dir", required=True)
     return parser
@@ -738,10 +832,14 @@ def main() -> int:
         summary = asyncio.run(crawl_run(args.run_dir))
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         return 0
+    if args.command == "analyze-reports":
+        summary = asyncio.run(analyze_reports(args.run_dir))
+        print(json.dumps(summary, ensure_ascii=False, indent=2))
+        return 0
     if args.command == "finalize-broadcast":
         summary = finalize_broadcast(args.run_dir)
         print(json.dumps(summary, ensure_ascii=False, indent=2))
-        return 0
+        return 0 if summary.get("ok", True) else 3
     return 1
 
 

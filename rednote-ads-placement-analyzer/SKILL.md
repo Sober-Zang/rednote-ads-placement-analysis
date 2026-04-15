@@ -156,6 +156,7 @@ python pipeline.py prepare-run --input-text "<用户原始输入全文>"
 - 不要自行创建 `task_input.md`、`m+ task_input.md` 等临时文件名；机器执行优先用 `--input-text`
 - 若输入中已经给出一组小红书链接，且没有额外的新目标要求，则不要再追问“请说明要调用什么 skill”或“请说明任务目标”；这本身就应触发本 skill 的标准任务
 - 标准任务一旦建立 run，就必须继续执行到单篇报告、综合报告和最终播报全部完成
+- 即使当前链接在过去已经执行过，也必须按本次 run 重新抓取、重新分析、重新落盘；除非用户明确允许复用旧结果
 
 ### 阶段 2：登录状态检测
 
@@ -199,31 +200,33 @@ python pipeline.py crawl --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
 - 二级评论抓取的完整度直接受登录态影响；应先等待登录状态明确，再开始抓取，而不是边登录边抓
 - 二级评论抓取失败只应表现为当前根评论降级，不应直接打崩整条 run
 
-### 阶段 4：分析准备
+### 阶段 4：分析生成
 
-目标：在标准任务下，必须使用标准提示词驱动单篇报告与综合报告生成；在非标准任务但包含小红书链接时，必须先完成下载归档，再使用当前 run 的用户提示词解决该次指定目标。
+目标：基于当前 run 已下载的正文、图片、评论、索引和 `prompt/used_prompt.md` 直接生成并落盘报告。分析阶段的任务是深度分析、形成鲜明判断并输出有洞见的报告，不是按结构填充内容。
+
+执行：
+
+```bash
+python pipeline.py analyze-reports --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+```
 
 规则：
 
 - 当前 run 只使用 `prompt/used_prompt.md`
-- 分析前应读取每个样本目录内的证据文件和 `reference_index.json`
-- 生成单篇报告前，必须先读取当前样本目录下的 `manifests/note_manifest.json`；报告头部是否写入登录标签与风险提示，只能以该文件中的 `login_mode` 和 `login_mode_note` 为唯一事实来源
-- 图片必须真实提供给模型阅读和思考，尤其是关键正文图片
-- 如果某张图没有成功提供给模型，不要假装已经看过，也不要据此得出肯定结论
-- 若本次是标准任务：
-  - 标准提示词驱动：单篇报告与综合报告都必须由 `prompt/used_prompt.md` 驱动生成，不允许自由发挥，不允许改格式，不允许跳过报告只生成最终播报
-  - 单篇报告：成功样本的单篇报告已生成并落盘到 `notes/*/analysis/`
-  - 综合报告：基于成功单篇报告的综合报告已生成并落盘到 `aggregate/`
-  - 若部分链接下载失败，则其余成功样本仍继续生成单篇报告和综合报告
-  - 若登录不成功，但仍抓到了足够支持分析的内容，也必须继续完成报告；区别只体现在未登录风险标注
-- 若本次是非标准任务但包含小红书链接：
-  - 先完成小红书链接下载与归档
-  - 再由 `prompt/used_prompt.md` 中的用户本轮完整新输入驱动回答
-  - 这类回答不必固化成 `final_broadcast.md`
+- 分析时直接读取当前 run 的正文、图片、评论、`reference_index.json` 与 `note_manifest.json`
+- 报告头部是否写入登录标签与风险提示，只能以当前样本 `note_manifest.json` 中的 `login_mode` 和 `login_mode_note` 为唯一事实来源
+- 图片必须真实提供给模型阅读和思考；未提供的图片不得假装已读
+- 标准任务：
+  - `prompt/used_prompt.md = assets/standard_analysis_prompt.md`
+  - 单篇报告必须落盘到 `notes/*/analysis/`
+  - 成功样本数 >= 2 时，综合报告必须落盘到 `aggregate/`
+- 非标准任务但包含小红书链接：
+  - 先完成下载与归档
+  - 再由 `prompt/used_prompt.md` 中的用户本轮完整新输入直接驱动内容生成
 
 ### 阶段 5：最终落档与契约校验
 
-目标：在标准任务下完成报告交付收尾与契约校验；最终播报是收尾步骤，不是对单篇报告和综合报告的替代。若报告无法生成，必须在播报中明确说明原因。
+目标：在报告已经生成并落盘后再生成最终播报。标准任务下，没有报告就不能完成 finalize。
 
 执行：
 
@@ -235,7 +238,7 @@ python pipeline.py validate-contract --run-dir "$OUTPUT_DIR/run_<timestamp>_<tas
 必须确认：
 
 - 单篇报告：成功样本的单篇报告已生成并落盘到 `notes/*/analysis/`
-- 综合报告：基于成功单篇报告的综合报告已生成并落盘到 `aggregate/`
+- 综合报告：成功样本数 >= 2 时，综合报告已生成并落盘到 `aggregate/`
 - 最终播报：`logs/final_broadcast.md` 已生成
 - 标准任务完成：单篇报告、综合报告与最终播报全部完成
 - 标准任务对话输出：只能输出 `logs/final_broadcast.md` 的完整正文，逐字一致，不得增删改写
