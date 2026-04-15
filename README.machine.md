@@ -21,21 +21,6 @@
 - 后续 AI 不需要猜路径、猜解释器、猜输入输出文件名
 - 只要输入里已经出现一组小红书分享链接，且用户没有提出与标准任务不一致的新目标，就应直接按本仓库的标准任务入口执行，不必再追问“要用什么 skill”
 
-## 先看哪里
-
-开始执行前，优先阅读：
-
-- `rednote-ads-placement-analyzer/SKILL.md`
-
-Skill 安装或发现位置按以下顺序理解：
-
-| 平台 | 第一优先级：工作区本地 skill 根 | 第二优先级：用户级全局 skill 根 |
-| --- | --- | --- |
-| macOS / Linux | `<workspace>/.agent/skills/rednote-ads-placement-analysis/` | `~/.agent/skills/rednote-ads-placement-analysis/` |
-| Windows | `<workspace>\\.agent\\skills\\rednote-ads-placement-analysis\\` | `%USERPROFILE%\\.agent\\skills\\rednote-ads-placement-analysis\\` |
-
-如果用户已经明确提供工作区，应优先使用工作区本地 skill 根；只有用户只表达“安装 skill”而没有指定工作区时，才退回用户级全局 skill 根。
-
 ## 产品边界
 
 | 层级 | 作用 | 写入规则 |
@@ -64,12 +49,11 @@ python pipeline.py <command> ...
 | `login-only` | 只执行登录检测与登录等待，不建立 run |
 | `prepare-run` | 提取链接、建立新 run、写入官方输入材料 |
 | `crawl` | 下载帖子正文、图片、评论和元数据 |
+| `analyze-reports` | 基于当前 run 生成正式分析任务包，供模型生成单篇/综合报告 |
 | `finalize-broadcast` | 生成官方最终播报文件 |
 | `validate-contract` | 检查 run 结构与契约一致性 |
 
 ## 环境准备
-
-先执行 `check-env`。如果环境已经满足，就直接继续，不要重复准备；只有 `check-env` 未通过时，才按下面这一套唯一安装方式补齐环境。
 
 ### macOS / Linux
 
@@ -124,6 +108,7 @@ $env:OUTPUT_DIR="D:\path\to\rednote-ads-placement-analysis-output"
 python pipeline.py check-env
 python pipeline.py prepare-run --input-text "<用户原始输入全文>"
 python pipeline.py crawl --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+python pipeline.py analyze-reports --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
 python pipeline.py finalize-broadcast --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
 python pipeline.py validate-contract --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
 ```
@@ -138,13 +123,12 @@ python pipeline.py login-only
 
 - `check-env` 是唯一前置硬门，未通过时不得继续后续步骤
 - 机器执行优先使用 `--input-text`，不要自行发明 `task_input.md`、`m+ task_input.md` 等临时文件名
-- 若必须落临时文件，只能写到当前 run 的官方目录内，不能写回仓库
+- 若必须落临时文件，只能写到当前 run 的 `temp/` 或系统临时目录，不能写回仓库
 - 如果与项目同级的 `rednote-ads-placement-analysis-output/` 已存在，必须直接复用该目录；只有在它不存在时，才允许在项目同级位置创建，不得改写成别的父级目录或隐藏目录
 - 单篇报告头部的登录状态说明，只能以当前样本目录下 `manifests/note_manifest.json` 为唯一事实来源；若其中为 `authenticated`，就不得再写未登录标签或未登录风险提示
 - 标准任务只有在单篇报告、综合报告与最终播报都完成后，才算任务完成；不能把“只抓取到素材”误判成任务已经结束
-- 登录不成功不会自动中止任务；只要仍抓到了足够支持分析的内容，就要继续执行到报告完成，并在报告与播报中显式标注未登录风险
-- 如果全部有效链接都失效，或全部样本都没有拿到足够数据，则应明确广播“没有报告”，并在注意部分说明无效链接或失败原因
-- 登录状态一旦被页面 UI 判定为失效，应先自动清空失效的 `xhs_user_data_dir`，再在当前已打开页面里进入 300 秒等待；不要关闭再重新打开页面，以免打断用户正在进行的登录动作
+- `analyze-reports` 只负责生成分析任务包与输出要求，不允许在仓库源码树内写草稿脚本或中间文件
+- 标准任务的单篇/综合报告必须由模型基于 `prompt/used_prompt.md` 与当前 run 证据动态生成并落盘，不允许复用固定正文模板
 
 ## 官方 run 结构
 
@@ -158,14 +142,17 @@ OUTPUT_DIR/
       raw_user_input.md
     logs/
       final_broadcast.md
+      report_quality_requirements.json
     manual-artifacts/
     manifests/
       link_manifest.json
       run_manifest.json
     notes/
     prompt/
+      compiled_analysis_prompt.md
       prompt_mode.json
       used_prompt.md
+    temp/
 ```
 
 不要生成下列替代文件名：

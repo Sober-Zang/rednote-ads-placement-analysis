@@ -25,14 +25,17 @@ OUTPUT_DIR/
       raw_user_input.md
     logs/
       final_broadcast.md
+      report_quality_requirements.json
     manual-artifacts/
     manifests/
       link_manifest.json
       run_manifest.json
     notes/
     prompt/
+      compiled_analysis_prompt.md
       prompt_mode.json
       used_prompt.md
+    temp/
 ```
 
 ## Required Filenames
@@ -65,6 +68,8 @@ The following are not valid contract filenames and must not be produced as offic
 
 - `final_broadcast.md` is the official broadcast artifact.
 - Standard tasks must make the assistant reply exactly match `final_broadcast.md`.
+- `analyze-reports` must prepare `prompt/compiled_analysis_prompt.md` and `logs/report_quality_requirements.json` before model-driven report generation begins.
+- Standard-task reports must be generated from the current run evidence and `prompt/used_prompt.md`, rather than from fixed boilerplate text or ad-hoc repo scripts.
 - If reports are not generated yet, `final_broadcast.md` must state that the run is still waiting for reports.
 - When reports are generated, `final_broadcast.md` must show a Chinese status label and a Chinese login-state label based on the real run facts.
 - The core conclusion in `final_broadcast.md` must be a 100-300 character Chinese synthesis distilled from the aggregate report's key sections, rather than a flat list or a direct copy of any single subsection.

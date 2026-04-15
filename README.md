@@ -36,18 +36,23 @@
 
 ## 🚀 快速开始
 
-### 📌 优先必读与安装路径
+### 📌 官方执行顺序
 
-在正式使用前，强烈建议您优先阅读 `rednote-ads-placement-analyzer/SKILL.md` 文件，以快速掌握核心运行机制。
+标准任务的官方执行顺序为：
 
-**📁 Skill 推荐部署路径：**
-请优先将本 Skill 克隆至您**当前工作区**的本地目录；若无特定工作区，可安装至系统的**全局默认目录**：
+```bash
+python pipeline.py check-env
+python pipeline.py prepare-run --input-text "<用户原始输入全文>"
+python pipeline.py crawl --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+python pipeline.py analyze-reports --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+```
 
-| 操作系统 | 🥇 优先：工作区本地目录 | 🥈 备选：全局默认目录 |
-|---|---|---|
-| **macOS / Linux** | `<workspace>/.agent/skills/` | `~/.agent/skills/` |
-| **Windows** | `<workspace>\.agent\skills\` | `%USERPROFILE%\.agent\skills\` |
-*(注：部署时请在上述路径后追加 `rednote-ads-placement-analysis/`)*
+随后应由模型基于当前 run 的 `prompt/compiled_analysis_prompt.md`、各样本 `manifests/evidence_digest.json` 与真实下载证据生成单篇报告和综合报告，再执行：
+
+```bash
+python pipeline.py finalize-broadcast --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+python pipeline.py validate-contract --run-dir "$OUTPUT_DIR/run_<timestamp>_<task-slug>"
+```
 
 ### 环境要求
 
